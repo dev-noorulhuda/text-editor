@@ -25,7 +25,10 @@ export default function RootLayout() {
             backgroundColor: isDark ? colors.dark[500] : colors.white[100],
           },
         }}
-      />
+      >
+        <Stack.Screen name="index" />
+        <Stack.Screen name="settings" />
+      </Stack>
     </>
   );
 }

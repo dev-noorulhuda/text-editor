@@ -18,6 +18,7 @@ interface OverflowMenuProps {
   onOpen: () => void;
   onSave: () => void;
   onSaveAs: () => void;
+  onSettings: () => void;
 }
 
 export const OverflowMenu = ({
@@ -26,6 +27,7 @@ export const OverflowMenu = ({
   onOpen,
   onSave,
   onSaveAs,
+  onSettings,
 }: OverflowMenuProps) => {
   const [visible, setVisible] = useState(false);
 
@@ -40,6 +42,7 @@ export const OverflowMenu = ({
     { label: "Open", icon: <Feather name="folder" size={18} color={iconColor} />, action: onOpen },
     { label: "Save", icon: <Feather name="save" size={18} color={iconColor} />, action: onSave },
     { label: "Save As", icon: <Feather name="save" size={18} color={iconColor} />, action: onSaveAs },
+    { label: "Settings", icon: <Feather name="settings" size={18} color={iconColor} />, action: onSettings },
   ];
 
   return (

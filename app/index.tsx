@@ -5,6 +5,7 @@ import { useEditor } from "@/hooks/useEditor";
 import { colors } from "@/lib/colors";
 import type { TabFile } from "@/types/editorTypes";
 import { Feather, MaterialIcons } from "@expo/vector-icons";
+import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
 import { TouchableOpacity, View, Text } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -126,6 +127,7 @@ export default function EditorScreen() {
             onOpen={handleOpen}
             onSave={handleSave}
             onSaveAs={handleSaveAs}
+            onSettings={() => router.push("/settings")}
           />
         </View>
       </View>
