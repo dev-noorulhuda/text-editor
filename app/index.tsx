@@ -7,6 +7,7 @@ import type { TabFile } from "@/types/editorTypes";
 import { Feather, MaterialIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
+import { useCallback, useState } from "react";
 import { TouchableOpacity, View, Text } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -22,6 +23,8 @@ export default function EditorScreen() {
     canRedo,
     isEditable,
     fontSize,
+    highlightLine,
+    showLineNumbers,
     handleContentChange,
     handleNew,
     handleOpen,
@@ -36,6 +39,11 @@ export default function EditorScreen() {
     decreaseFontSize,
     toggleColorScheme: togglePersisted,
   } = useEditor();
+
+  const [currentLine, setCurrentLine] = useState(1);
+  const handleSelectionChange = useCallback((line: number) => {
+    setCurrentLine(line);
+  }, []);
 
   const handleToggleColorScheme = () => {
     toggleNativewind();
@@ -149,7 +157,11 @@ export default function EditorScreen() {
         isDark={isDark}
         editable={isEditable}
         fontSize={fontSize}
+        highlightLine={highlightLine}
+        showLineNumbers={showLineNumbers}
+        currentLine={currentLine}
         onChangeText={handleContentChange}
+        onSelectionChange={handleSelectionChange}
       />
     </SafeAreaView>
   );

@@ -38,7 +38,11 @@ export interface EditorProps {
   isDark: boolean;
   editable: boolean;
   fontSize: number;
+  highlightLine: boolean;
+  showLineNumbers: boolean;
+  currentLine: number;
   onChangeText: (text: string) => void;
+  onSelectionChange: (line: number) => void;
 }
 
 export interface PromptConfig {

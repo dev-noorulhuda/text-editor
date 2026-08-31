@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from "react";
+import { useFocusEffect } from "expo-router";
 import { openFile, saveFile, saveFileAs } from "@/lib/fileHelpers";
 import { loadSettings, saveSettings } from "@/lib/settingsStore";
 import {
@@ -24,6 +25,8 @@ export const useEditor = () => {
   const [isEditable, setIsEditable] = useState(savedSettings.current.isEditable);
   const [fontSize, setFontSize] = useState(savedSettings.current.fontSize);
   const [colorScheme, setColorScheme] = useState<"light" | "dark">(savedSettings.current.colorScheme);
+  const [highlightLine, setHighlightLine] = useState(savedSettings.current.highlightLine);
+  const [showLineNumbers, setShowLineNumbers] = useState(savedSettings.current.showLineNumbers);
 
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -58,8 +61,17 @@ export const useEditor = () => {
   }, []);
 
   useEffect(() => {
-    saveSettings({ colorScheme, isEditable, fontSize });
-  }, [colorScheme, isEditable, fontSize]);
+    saveSettings({ colorScheme, isEditable, fontSize, highlightLine, showLineNumbers });
+  }, [colorScheme, isEditable, fontSize, highlightLine, showLineNumbers]);
+
+  useFocusEffect(
+    useCallback(() => {
+      const fresh = loadSettings();
+      setHighlightLine(fresh.highlightLine);
+      setShowLineNumbers(fresh.showLineNumbers);
+      setFontSize(fresh.fontSize);
+    }, [])
+  );
 
   const updateFile = useCallback(
     (id: string, updates: Partial<FileData>) => {
@@ -250,6 +262,8 @@ export const useEditor = () => {
     isEditable,
     fontSize,
     colorScheme,
+    highlightLine,
+    showLineNumbers,
     handleContentChange,
     handleNew,
     handleOpen,
@@ -263,5 +277,7 @@ export const useEditor = () => {
     increaseFontSize: useCallback(() => setFontSize((prev) => Math.min(prev + 2, 40)), []),
     decreaseFontSize: useCallback(() => setFontSize((prev) => Math.max(prev - 2, 10)), []),
     toggleColorScheme: useCallback(() => setColorScheme((prev) => (prev === "dark" ? "light" : "dark")), []),
+    toggleHighlightLine: useCallback(() => setHighlightLine((prev) => !prev), []),
+    toggleShowLineNumbers: useCallback(() => setShowLineNumbers((prev) => !prev), []),
   };
 };

@@ -6,12 +6,16 @@ export interface AppSettings {
   colorScheme: "light" | "dark";
   isEditable: boolean;
   fontSize: number;
+  highlightLine: boolean;
+  showLineNumbers: boolean;
 }
 
 const DEFAULTS: AppSettings = {
   colorScheme: "light",
   isEditable: true,
   fontSize: 16,
+  highlightLine: true,
+  showLineNumbers: false,
 };
 
 export const loadSettings = (): AppSettings => {
