@@ -1,57 +1,31 @@
-import { File, Paths } from "expo-file-system";
-
-const AUTOSAVE_FILE = "autosave.txt";
+import { File } from "expo-file-system";
 
 export interface FileResult {
   success: boolean;
   content?: string;
   fileName?: string;
-  error?: string;
+  uri?: string;
 }
-
-export const autoSave = async (content: string): Promise<boolean> => {
-  try {
-    const file = new File(Paths.document, AUTOSAVE_FILE);
-    file.write(content);
-    return true;
-  } catch {
-    return false;
-  }
-};
-
-export const loadAutoSave = (): string | null => {
-  try {
-    const file = new File(Paths.document, AUTOSAVE_FILE);
-    if (file.exists) {
-      return file.textSync();
-    }
-    return null;
-  } catch {
-    return null;
-  }
-};
 
 export const openFile = async (): Promise<FileResult> => {
   try {
     const file = await File.pickFileAsync(undefined, "text/*");
 
     if (!file) {
-      return { success: false, error: "User cancelled" };
+      return { success: false };
     }
 
     const pickedFile = Array.isArray(file) ? file[0] : file;
     if (!pickedFile) {
-      return { success: false, error: "No file selected" };
+      return { success: false };
     }
 
     const content = pickedFile.textSync();
 
-    return { success: true, content, fileName: pickedFile.name };
+    return { success: true, content, fileName: pickedFile.name, uri: pickedFile.uri };
   } catch (error) {
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : "Failed to open file",
-    };
+    console.error("Failed to open file:", error);
+    return { success: false };
   }
 };
 
@@ -64,10 +38,8 @@ export const saveFile = async (
     file.write(content);
     return { success: true };
   } catch (error) {
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : "Failed to save file",
-    };
+    console.error("Failed to save file:", error);
+    return { success: false };
   }
 };
 
@@ -76,25 +48,19 @@ export const saveFileAs = async (content: string): Promise<FileResult> => {
     const file = await File.pickFileAsync(undefined, "text/*");
 
     if (!file) {
-      return { success: false, error: "User cancelled" };
+      return { success: false };
     }
 
     const pickedFile = Array.isArray(file) ? file[0] : file;
     if (!pickedFile) {
-      return { success: false, error: "No file selected" };
+      return { success: false };
     }
 
     pickedFile.write(content);
 
-    return { success: true };
+    return { success: true, uri: pickedFile.uri };
   } catch (error) {
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : "Failed to save file",
-    };
+    console.error("Failed to save file:", error);
+    return { success: false };
   }
-};
-
-export const createNewFile = (): FileResult => {
-  return { success: true, content: "", fileName: "Untitled" };
 };
