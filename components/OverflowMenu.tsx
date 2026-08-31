@@ -27,11 +27,11 @@ export const OverflowMenu = ({
 }: OverflowMenuProps) => {
   const [visible, setVisible] = useState(false);
 
-  const iconColor = isDark ? "#A3A3A7" : "#D4C494";
-  const menuBg = isDark ? "bg-dark-600" : "bg-cream-50";
-  const menuBorder = isDark ? "border-dark-400" : "border-cream-300";
-  const textColor = isDark ? "text-dark-100" : "text-cream-800";
-  const hoverBg = isDark ? "bg-dark-500" : "bg-cream-100";
+  const iconColor = isDark ? "#A3A3A7" : "#6B7280";
+  const menuBg = isDark ? "bg-dark-600" : "bg-white-50";
+  const menuBorder = isDark ? "border-dark-400" : "border-white-300";
+  const textColor = isDark ? "text-dark-100" : "text-white-800";
+  const hoverBg = isDark ? "bg-dark-500" : "bg-white-100";
 
   const items = [
     { label: "New", icon: <MaterialIcons name="note-add" size={18} color={iconColor} />, action: onNew },

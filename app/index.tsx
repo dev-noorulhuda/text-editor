@@ -31,21 +31,21 @@ export default function EditorScreen() {
     isModified: f.isModified,
   }));
 
-  const iconColor = isDark ? "#A3A3A7" : "#D4C494";
+  const iconColor = isDark ? "#A3A3A7" : "#6B7280";
 
   return (
     <SafeAreaView
-      className={`flex-1 ${isDark ? "bg-dark-500" : "bg-cream-100"}`}
+      className={`flex-1 ${isDark ? "bg-dark-500" : "bg-white-100"}`}
       edges={["top", "bottom"]}
     >
       <View
         className={`flex-row items-center justify-between px-4 py-3 ${
-          isDark ? "bg-dark-600" : "bg-cream-200"
+          isDark ? "bg-dark-600" : "bg-white-200"
         }`}
       >
         <Text
           className={`text-lg font-bold ${
-            isDark ? "text-dark-100" : "text-cream-800"
+            isDark ? "text-dark-100" : "text-white-900"
           }`}
         >
           Text Editor

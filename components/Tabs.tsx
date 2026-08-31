@@ -13,7 +13,7 @@ export const Tabs = ({
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
-      className={` ${isDark ? "bg-dark-500" : "bg-cream-200"} `}
+      className={`${isDark ? "bg-dark-500" : "bg-white-200"}`}
     >
       {files.map((file) => {
         const isActive = file.id === activeFileId;
@@ -26,7 +26,7 @@ export const Tabs = ({
               isActive
                 ? isDark
                   ? "border-b-2 border-dark-50 bg-dark-600"
-                  : "border-b-2 border-cream-500 bg-cream-100"
+                  : "border-b-2 border-white-400 bg-white-50"
                 : ""
             }`}
           >
@@ -35,10 +35,10 @@ export const Tabs = ({
                 isActive
                   ? isDark
                     ? "text-dark-50"
-                    : "text-cream-900"
+                    : "text-white-900"
                   : isDark
                     ? "text-dark-300"
-                    : "text-cream-600"
+                    : "text-white-600"
               }`}
             >
               {file.name}
@@ -52,7 +52,7 @@ export const Tabs = ({
             >
               <Text
                 className={`text-xs ${
-                  isDark ? "text-dark-400" : "text-cream-500"
+                  isDark ? "text-dark-400" : "text-white-500"
                 }`}
               >
                 ✕
@@ -64,7 +64,7 @@ export const Tabs = ({
       <TouchableOpacity onPress={onNew} className="h-9 px-3 justify-center">
         <Text
           className={`text-base font-bold ${
-            isDark ? "text-dark-300" : "text-cream-600"
+            isDark ? "text-dark-300" : "text-white-600"
           }`}
         >
           +

@@ -67,12 +67,12 @@ export const SupportPrompt = ({ isDark }: SupportPromptProps) => {
       <View className="flex-1 justify-center items-center bg-black/50 px-6">
         <View
           className={`w-full max-w-sm rounded-2xl p-6 ${
-            isDark ? "bg-dark-600" : "bg-cream-50"
+            isDark ? "bg-dark-600" : "bg-white-50"
           }`}
         >
           <Text
             className={`text-xl font-bold mb-3 ${
-              isDark ? "text-dark-100" : "text-cream-900"
+              isDark ? "text-dark-100" : "text-white-900"
             }`}
           >
             Enjoying Text Editor?
@@ -80,7 +80,7 @@ export const SupportPrompt = ({ isDark }: SupportPromptProps) => {
 
           <Text
             className={`mb-6 leading-relaxed ${
-              isDark ? "text-dark-200" : "text-cream-700"
+              isDark ? "text-dark-200" : "text-white-700"
             }`}
           >
             If you find this app useful, consider supporting development with a
@@ -101,12 +101,12 @@ export const SupportPrompt = ({ isDark }: SupportPromptProps) => {
             <TouchableOpacity
               onPress={handleAction}
               className={`py-3 rounded-xl ${
-                isDark ? "bg-dark-400" : "bg-cream-200"
+                isDark ? "bg-dark-400" : "bg-white-200"
               }`}
             >
               <Text
                 className={`text-center font-medium ${
-                  isDark ? "text-dark-200" : "text-cream-700"
+                  isDark ? "text-dark-200" : "text-white-700"
                 }`}
               >
                 Maybe Later

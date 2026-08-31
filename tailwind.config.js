@@ -11,18 +11,18 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Light mode colors (Cream White)
-        cream: {
-          50: "#FFFDF7",
-          100: "#FFF9E8",
-          200: "#FFF3D1",
-          300: "#FFEDBA",
-          400: "#FFE7A3",
-          500: "#F5DEB3", // Main cream
-          600: "#E6D0A3",
-          700: "#D4C494",
-          800: "#C2B885",
-          900: "#B0AC76",
+        // Light mode colors (White)
+        white: {
+          50: "#FFFFFF",
+          100: "#F9FAFB",
+          200: "#F3F4F6",
+          300: "#E5E7EB",
+          400: "#D1D5DB",
+          500: "#9CA3AF",
+          600: "#6B7280",
+          700: "#4B5563",
+          800: "#374151",
+          900: "#111827",
         },
         // Dark mode colors (Charcoal)
         dark: {
