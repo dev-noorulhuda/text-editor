@@ -1,4 +1,5 @@
 import { TextInput } from "react-native";
+import { colors } from "@/lib/colors";
 import type { EditorProps } from "@/types/editorTypes";
 
 export const Editor = ({ content, isDark, onChangeText }: EditorProps) => {
@@ -11,7 +12,7 @@ export const Editor = ({ content, isDark, onChangeText }: EditorProps) => {
       value={content}
       onChangeText={onChangeText}
       placeholder="Start typing..."
-      placeholderTextColor={isDark ? "#75757B" : "#9CA3AF"}
+      placeholderTextColor={isDark ? colors.dark[300] : colors.white[500]}
       textAlignVertical="top"
       autoCapitalize="none"
       autoCorrect={false}

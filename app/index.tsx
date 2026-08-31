@@ -2,8 +2,9 @@ import { Editor } from "@/components/Editor";
 import { OverflowMenu } from "@/components/OverflowMenu";
 import { Tabs } from "@/components/Tabs";
 import { useEditor } from "@/hooks/useEditor";
+import { colors } from "@/lib/colors";
 import type { TabFile } from "@/types/editorTypes";
-import { MaterialIcons } from "@expo/vector-icons";
+import { Feather, MaterialIcons } from "@expo/vector-icons";
 import { useColorScheme } from "nativewind";
 import { TouchableOpacity, View, Text } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -16,11 +17,15 @@ export default function EditorScreen() {
     activeFile,
     activeFileId,
     files,
+    canUndo,
+    canRedo,
     handleContentChange,
     handleNew,
     handleOpen,
     handleSave,
     handleSaveAs,
+    handleUndo,
+    handleRedo,
     handleClose,
     setActiveFileId,
   } = useEditor();
@@ -31,7 +36,7 @@ export default function EditorScreen() {
     isModified: f.isModified,
   }));
 
-  const iconColor = isDark ? "#A3A3A7" : "#6B7280";
+  const iconColor = isDark ? colors.dark[200] : colors.white[600];
 
   return (
     <SafeAreaView
@@ -52,6 +57,30 @@ export default function EditorScreen() {
         </Text>
 
         <View className="flex-row items-center gap-1">
+          <TouchableOpacity
+            onPress={handleUndo}
+            disabled={!canUndo}
+            className={`p-2 ${!canUndo ? "opacity-30" : ""}`}
+          >
+            <Feather
+              name="corner-up-left"
+              size={20}
+              color={iconColor}
+            />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={handleRedo}
+            disabled={!canRedo}
+            className={`p-2 ${!canRedo ? "opacity-30" : ""}`}
+          >
+            <Feather
+              name="corner-up-right"
+              size={20}
+              color={iconColor}
+            />
+          </TouchableOpacity>
+
           <TouchableOpacity onPress={toggleColorScheme} className="p-2">
             <MaterialIcons
               name={isDark ? "light-mode" : "dark-mode"}

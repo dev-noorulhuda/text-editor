@@ -9,6 +9,7 @@ import {
   MaterialIcons,
   Feather,
 } from "@expo/vector-icons";
+import { colors } from "@/lib/colors";
 
 interface OverflowMenuProps {
   isDark: boolean;
@@ -27,7 +28,7 @@ export const OverflowMenu = ({
 }: OverflowMenuProps) => {
   const [visible, setVisible] = useState(false);
 
-  const iconColor = isDark ? "#A3A3A7" : "#6B7280";
+  const iconColor = isDark ? colors.dark[200] : colors.white[600];
   const menuBg = isDark ? "bg-dark-600" : "bg-white-50";
   const menuBorder = isDark ? "border-dark-400" : "border-white-300";
   const textColor = isDark ? "text-dark-100" : "text-white-800";
