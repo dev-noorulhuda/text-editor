@@ -10,7 +10,7 @@ import { TouchableOpacity, View, Text } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function EditorScreen() {
-  const { colorScheme, toggleColorScheme } = useColorScheme();
+  const { colorScheme, toggleColorScheme: toggleNativewind } = useColorScheme();
   const isDark = colorScheme === "dark";
 
   const {
@@ -33,7 +33,13 @@ export default function EditorScreen() {
     toggleEditable,
     increaseFontSize,
     decreaseFontSize,
+    toggleColorScheme: togglePersisted,
   } = useEditor();
+
+  const handleToggleColorScheme = () => {
+    toggleNativewind();
+    togglePersisted();
+  };
 
   const tabFiles: TabFile[] = files.map((f) => ({
     id: f.id,
@@ -106,7 +112,7 @@ export default function EditorScreen() {
             />
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={toggleColorScheme} className="p-2">
+          <TouchableOpacity onPress={handleToggleColorScheme} className="p-2">
             <MaterialIcons
               name={isDark ? "light-mode" : "dark-mode"}
               size={20}

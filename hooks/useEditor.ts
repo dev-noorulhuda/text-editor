@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { openFile, saveFile, saveFileAs } from "@/lib/fileHelpers";
+import { loadSettings, saveSettings } from "@/lib/settingsStore";
 import {
   generateId,
   loadInitialFiles,
@@ -16,10 +17,13 @@ export const useEditor = () => {
   const [activeFileId, setActiveFileId] = useState(() => files[0]?.id ?? "");
   const activeFile = files.find((f) => f.id === activeFileId) ?? files[0];
 
+  const savedSettings = useRef(loadSettings());
+
   const [canUndo, setCanUndo] = useState(false);
   const [canRedo, setCanRedo] = useState(false);
-  const [isEditable, setIsEditable] = useState(true);
-  const [fontSize, setFontSize] = useState(16);
+  const [isEditable, setIsEditable] = useState(savedSettings.current.isEditable);
+  const [fontSize, setFontSize] = useState(savedSettings.current.fontSize);
+  const [colorScheme, setColorScheme] = useState<"light" | "dark">(savedSettings.current.colorScheme);
 
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -53,6 +57,10 @@ export const useEditor = () => {
     };
   }, []);
 
+  useEffect(() => {
+    saveSettings({ colorScheme, isEditable, fontSize });
+  }, [colorScheme, isEditable, fontSize]);
+
   const updateFile = useCallback(
     (id: string, updates: Partial<FileData>) => {
       setFiles((prev) => {
@@ -83,14 +91,7 @@ export const useEditor = () => {
       lastContentRef.set(activeFile.id, text);
 
       updateFile(activeFile.id, { content: text, isModified: true });
-
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
-      }
-
-      saveTimeoutRef.current = setTimeout(() => {
-        saveFileContent(activeFile.id, text);
-      }, 500);
+      saveFileContent(activeFile.id, text);
     },
     [activeFile, updateFile]
   );
@@ -248,6 +249,7 @@ export const useEditor = () => {
     canRedo,
     isEditable,
     fontSize,
+    colorScheme,
     handleContentChange,
     handleNew,
     handleOpen,
@@ -260,5 +262,6 @@ export const useEditor = () => {
     toggleEditable: useCallback(() => setIsEditable((prev) => !prev), []),
     increaseFontSize: useCallback(() => setFontSize((prev) => Math.min(prev + 2, 40)), []),
     decreaseFontSize: useCallback(() => setFontSize((prev) => Math.max(prev - 2, 10)), []),
+    toggleColorScheme: useCallback(() => setColorScheme((prev) => (prev === "dark" ? "light" : "dark")), []),
   };
 };

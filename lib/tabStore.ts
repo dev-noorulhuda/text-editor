@@ -37,11 +37,12 @@ export const saveTabsIndex = (ids: string[]): void => {
 export const loadFileContent = (id: string): string => {
   try {
     const file = new File(Paths.document, TABS_DIR, `${id}.txt`);
+    console.log(`[LOAD] ${id}.txt exists=${file.exists} → ${file.uri}`);
     if (file.exists) {
       return file.textSync();
     }
-  } catch {
-    // ignore
+  } catch (e) {
+    console.error("[LOAD FAILED]", e);
   }
   return "";
 };
@@ -54,8 +55,9 @@ export const saveFileContent = (id: string, content: string): void => {
     }
     const file = new File(Paths.document, TABS_DIR, `${id}.txt`);
     file.write(content);
-  } catch {
-    // ignore
+    console.log(`[SAVED] ${id}.txt (${content.length} chars) → ${file.uri}`);
+  } catch (e) {
+    console.error("[SAVE FAILED]", e);
   }
 };
 
@@ -106,6 +108,7 @@ export const persistTabs = (files: FileData[]): void => {
 export const loadInitialFiles = (): FileData[] => {
   const ids = loadTabsIndex();
   const meta = loadMetaData();
+  console.log(`[INIT] ids=${JSON.stringify(ids)} meta=${JSON.stringify(meta)}`);
 
   if (ids.length === 0) {
     return [
