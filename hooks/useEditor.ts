@@ -97,7 +97,7 @@ export const useEditor = () => {
   const handleSaveAs = useCallback(async () => {
     if (!activeFile) return;
 
-    const result = await saveFileAs(activeFile.content);
+    const result = await saveFileAs(activeFile.content, activeFile.name);
     if (result.success && result.uri) {
       updateFile(activeFile.id, {
         uri: result.uri,
