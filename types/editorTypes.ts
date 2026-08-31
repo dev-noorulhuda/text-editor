@@ -23,3 +23,33 @@ export interface TabMetadata {
   name: string;
   uri: string | null;
 }
+
+export interface ToolbarButtonProps {
+  label: string;
+  onPress: () => void;
+  isDark: boolean;
+}
+
+export interface TabsProps {
+  files: TabFile[];
+  activeFileId: string;
+  isDark: boolean;
+  onSelect: (id: string) => void;
+  onClose: (id: string) => void;
+  onNew: () => void;
+}
+
+export interface EditorProps {
+  content: string;
+  isDark: boolean;
+  onChangeText: (text: string) => void;
+}
+
+export interface PromptConfig {
+  firstLaunchDate: number;
+  hasPrompted: boolean;
+}
+
+export interface SupportPromptProps {
+  isDark: boolean;
+}

@@ -1,10 +1,5 @@
 import { TouchableOpacity, Text } from "react-native";
-
-interface ToolbarButtonProps {
-  label: string;
-  onPress: () => void;
-  isDark: boolean;
-}
+import type { ToolbarButtonProps } from "@/types/editorTypes";
 
 export const ToolbarButton = ({ label, onPress, isDark }: ToolbarButtonProps) => {
   return (

@@ -1,14 +1,5 @@
-import type { TabFile } from "@/types/editorTypes";
+import type { TabsProps } from "@/types/editorTypes";
 import { ScrollView, Text, TouchableOpacity } from "react-native";
-
-interface TabsProps {
-  files: TabFile[];
-  activeFileId: string;
-  isDark: boolean;
-  onSelect: (id: string) => void;
-  onClose: (id: string) => void;
-  onNew: () => void;
-}
 
 export const Tabs = ({
   files,
@@ -28,6 +19,7 @@ export const Tabs = ({
         const isActive = file.id === activeFileId;
         return (
           <TouchableOpacity
+            activeOpacity={0.8}
             key={file.id}
             onPress={() => onSelect(file.id)}
             className={`h-9 flex-row items-center px-3 ${

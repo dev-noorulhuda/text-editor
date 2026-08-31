@@ -1,18 +1,10 @@
 import { useState } from "react";
 import { View, Text, TouchableOpacity, Modal } from "react-native";
 import { File, Paths } from "expo-file-system";
+import type { PromptConfig, SupportPromptProps } from "@/types/editorTypes";
 
 const CONFIG_FILE = "support_prompt.json";
 const SHOW_AFTER_DAYS = 7;
-
-interface PromptConfig {
-  firstLaunchDate: number;
-  hasPrompted: boolean;
-}
-
-interface SupportPromptProps {
-  isDark: boolean;
-}
 
 const loadConfig = (): PromptConfig | null => {
   try {

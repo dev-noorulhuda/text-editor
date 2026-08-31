@@ -1,10 +1,5 @@
 import { TextInput } from "react-native";
-
-interface EditorProps {
-  content: string;
-  isDark: boolean;
-  onChangeText: (text: string) => void;
-}
+import type { EditorProps } from "@/types/editorTypes";
 
 export const Editor = ({ content, isDark, onChangeText }: EditorProps) => {
   return (

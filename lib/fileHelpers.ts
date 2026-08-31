@@ -1,11 +1,5 @@
 import { File } from "expo-file-system";
-
-export interface FileResult {
-  success: boolean;
-  content?: string;
-  fileName?: string;
-  uri?: string;
-}
+import type { FileResult } from "@/types/editorTypes";
 
 export const openFile = async (): Promise<FileResult> => {
   try {
