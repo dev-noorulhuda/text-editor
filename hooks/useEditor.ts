@@ -19,6 +19,7 @@ export const useEditor = () => {
   const [canUndo, setCanUndo] = useState(false);
   const [canRedo, setCanRedo] = useState(false);
   const [isEditable, setIsEditable] = useState(true);
+  const [fontSize, setFontSize] = useState(16);
 
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -246,6 +247,7 @@ export const useEditor = () => {
     canUndo,
     canRedo,
     isEditable,
+    fontSize,
     handleContentChange,
     handleNew,
     handleOpen,
@@ -256,5 +258,7 @@ export const useEditor = () => {
     handleClose,
     setActiveFileId,
     toggleEditable: useCallback(() => setIsEditable((prev) => !prev), []),
+    increaseFontSize: useCallback(() => setFontSize((prev) => Math.min(prev + 2, 40)), []),
+    decreaseFontSize: useCallback(() => setFontSize((prev) => Math.max(prev - 2, 10)), []),
   };
 };

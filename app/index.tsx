@@ -20,6 +20,7 @@ export default function EditorScreen() {
     canUndo,
     canRedo,
     isEditable,
+    fontSize,
     handleContentChange,
     handleNew,
     handleOpen,
@@ -30,6 +31,8 @@ export default function EditorScreen() {
     handleClose,
     setActiveFileId,
     toggleEditable,
+    increaseFontSize,
+    decreaseFontSize,
   } = useEditor();
 
   const tabFiles: TabFile[] = files.map((f) => ({
@@ -65,6 +68,18 @@ export default function EditorScreen() {
               size={20}
               color={iconColor}
             />
+          </TouchableOpacity>
+
+          <TouchableOpacity onPress={decreaseFontSize} className="p-2">
+            <Feather name="minus" size={20} color={iconColor} />
+          </TouchableOpacity>
+
+          <Text className={`text-xs ${isDark ? "text-dark-200" : "text-white-600"}`}>
+            {fontSize}pts
+          </Text>
+
+          <TouchableOpacity onPress={increaseFontSize} className="p-2">
+            <Feather name="plus" size={20} color={iconColor} />
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -125,6 +140,7 @@ export default function EditorScreen() {
         content={activeFile?.content ?? ""}
         isDark={isDark}
         editable={isEditable}
+        fontSize={fontSize}
         onChangeText={handleContentChange}
       />
     </SafeAreaView>

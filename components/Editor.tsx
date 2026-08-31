@@ -2,12 +2,13 @@ import { TextInput } from "react-native";
 import { colors } from "@/lib/colors";
 import type { EditorProps } from "@/types/editorTypes";
 
-export const Editor = ({ content, isDark, editable, onChangeText }: EditorProps) => {
+export const Editor = ({ content, isDark, editable, fontSize, onChangeText }: EditorProps) => {
   return (
     <TextInput
-      className={`flex-1 px-4 py-3 text-base ${
+      className={`flex-1 px-4 py-3 ${
         isDark ? "bg-dark-500 text-dark-50" : "bg-white-50 text-white-900"
       }`}
+      style={{ fontSize }}
       multiline
       value={content}
       onChangeText={onChangeText}

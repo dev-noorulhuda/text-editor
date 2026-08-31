@@ -37,6 +37,7 @@ export interface EditorProps {
   content: string;
   isDark: boolean;
   editable: boolean;
+  fontSize: number;
   onChangeText: (text: string) => void;
 }
 
