@@ -36,6 +36,7 @@ export interface TabsProps {
 export interface EditorProps {
   content: string;
   isDark: boolean;
+  editable: boolean;
   onChangeText: (text: string) => void;
 }
 

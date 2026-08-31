@@ -18,6 +18,7 @@ export const useEditor = () => {
 
   const [canUndo, setCanUndo] = useState(false);
   const [canRedo, setCanRedo] = useState(false);
+  const [isEditable, setIsEditable] = useState(true);
 
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -244,6 +245,7 @@ export const useEditor = () => {
     files,
     canUndo,
     canRedo,
+    isEditable,
     handleContentChange,
     handleNew,
     handleOpen,
@@ -253,5 +255,6 @@ export const useEditor = () => {
     handleRedo,
     handleClose,
     setActiveFileId,
+    toggleEditable: useCallback(() => setIsEditable((prev) => !prev), []),
   };
 };

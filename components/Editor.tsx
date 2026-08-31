@@ -2,7 +2,7 @@ import { TextInput } from "react-native";
 import { colors } from "@/lib/colors";
 import type { EditorProps } from "@/types/editorTypes";
 
-export const Editor = ({ content, isDark, onChangeText }: EditorProps) => {
+export const Editor = ({ content, isDark, editable, onChangeText }: EditorProps) => {
   return (
     <TextInput
       className={`flex-1 px-4 py-3 text-base ${
@@ -16,6 +16,7 @@ export const Editor = ({ content, isDark, onChangeText }: EditorProps) => {
       textAlignVertical="top"
       autoCapitalize="none"
       autoCorrect={false}
+      editable={editable}
     />
   );
 };

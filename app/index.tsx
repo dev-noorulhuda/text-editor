@@ -19,6 +19,7 @@ export default function EditorScreen() {
     files,
     canUndo,
     canRedo,
+    isEditable,
     handleContentChange,
     handleNew,
     handleOpen,
@@ -28,6 +29,7 @@ export default function EditorScreen() {
     handleRedo,
     handleClose,
     setActiveFileId,
+    toggleEditable,
   } = useEditor();
 
   const tabFiles: TabFile[] = files.map((f) => ({
@@ -57,6 +59,14 @@ export default function EditorScreen() {
         </Text>
 
         <View className="flex-row items-center gap-1">
+          <TouchableOpacity onPress={toggleEditable} className="p-2">
+            <MaterialIcons
+              name={isEditable ? "edit" : "edit-off"}
+              size={20}
+              color={iconColor}
+            />
+          </TouchableOpacity>
+
           <TouchableOpacity
             onPress={handleUndo}
             disabled={!canUndo}
@@ -114,6 +124,7 @@ export default function EditorScreen() {
       <Editor
         content={activeFile?.content ?? ""}
         isDark={isDark}
+        editable={isEditable}
         onChangeText={handleContentChange}
       />
     </SafeAreaView>

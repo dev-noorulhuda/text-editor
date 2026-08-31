@@ -3,6 +3,7 @@ import {
   TouchableOpacity,
   Text,
   View,
+  Modal,
   Pressable,
 } from "react-native";
 import {
@@ -44,42 +45,43 @@ export const OverflowMenu = ({
   return (
     <View>
       <TouchableOpacity
-        onPress={() => setVisible(!visible)}
+        onPress={() => setVisible(true)}
         className="p-2"
       >
         <Feather name="more-vertical" size={20} color={iconColor} />
       </TouchableOpacity>
 
-      {visible && (
+      <Modal
+        visible={visible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setVisible(false)}
+      >
         <Pressable
-          className="absolute top-10 right-0 z-50"
+          className="flex-1 bg-black/20 justify-start items-end pt-14 pr-4"
           onPress={() => setVisible(false)}
         >
-          <View className="flex-1 bg-black/20" />
+          <View
+            className={`rounded-lg border shadow-lg w-40 ${menuBg} ${menuBorder}`}
+          >
+            {items.map((item, index) => (
+              <TouchableOpacity
+                key={item.label}
+                onPress={() => {
+                  item.action();
+                  setVisible(false);
+                }}
+                className={`flex-row items-center px-3 py-3 gap-3 ${
+                  index === 0 ? "rounded-t-lg" : ""
+                } ${index === items.length - 1 ? "rounded-b-lg" : ""} ${hoverBg}`}
+              >
+                {item.icon}
+                <Text className={`text-sm ${textColor}`}>{item.label}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
         </Pressable>
-      )}
-
-      {visible && (
-        <View
-          className={`absolute top-10 right-0 z-50 rounded-lg border shadow-lg w-40 ${menuBg} ${menuBorder}`}
-        >
-          {items.map((item, index) => (
-            <TouchableOpacity
-              key={item.label}
-              onPress={() => {
-                item.action();
-                setVisible(false);
-              }}
-              className={`flex-row items-center px-3 py-3 gap-3 ${
-                index === 0 ? "rounded-t-lg" : ""
-              } ${index === items.length - 1 ? "rounded-b-lg" : ""} ${hoverBg}`}
-            >
-              {item.icon}
-              <Text className={`text-sm ${textColor}`}>{item.label}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      )}
+      </Modal>
     </View>
   );
 };
