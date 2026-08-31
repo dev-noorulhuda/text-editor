@@ -24,12 +24,6 @@ export interface TabMetadata {
   uri: string | null;
 }
 
-export interface ToolbarButtonProps {
-  label: string;
-  onPress: () => void;
-  isDark: boolean;
-}
-
 export interface TabsProps {
   files: TabFile[];
   activeFileId: string;
