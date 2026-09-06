@@ -16,7 +16,6 @@ type TextLayoutEvent = NativeSyntheticEvent<{ lines: TextLayoutLine[] }>;
 interface UseEditorLayoutProps {
   normalizedContent: string;
   wordWrap: boolean;
-  lines: string[];
   activeLine: number;
   onSelectionChange: (line: number) => void;
   onChangeText: (text: string) => void;
@@ -25,7 +24,6 @@ interface UseEditorLayoutProps {
 export const useEditorLayout = ({
   normalizedContent,
   wordWrap,
-  lines,
   activeLine,
   onSelectionChange,
   onChangeText,
@@ -71,7 +69,7 @@ export const useEditorLayout = ({
 
   const activeVisualRow = useMemo(() => {
     if (!wordWrap || visualLines.length === 0) {
-      return Math.min(Math.max(activeLine, 1), lines.length) - 1;
+      return Math.max(activeLine, 1) - 1;
     }
     const targetLabel = String(activeLine);
     let startRow = -1;
@@ -82,7 +80,7 @@ export const useEditorLayout = ({
       }
     }
     if (startRow === -1) {
-      return Math.min(Math.max(activeLine, 1), lines.length) - 1;
+      return Math.max(activeLine, 1) - 1;
     }
     let matchedRow = startRow;
     for (let i = startRow + 1; i < visualLines.length; i++) {
@@ -93,7 +91,7 @@ export const useEditorLayout = ({
       }
     }
     return matchedRow;
-  }, [wordWrap, visualLines, activeLine, lines.length, cursorOffset]);
+  }, [wordWrap, visualLines, activeLine, cursorOffset]);
 
   return {
     visualLines,

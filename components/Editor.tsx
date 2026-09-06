@@ -65,7 +65,6 @@ export const Editor = ({
   } = useEditorLayout({
     normalizedContent,
     wordWrap,
-    lines,
     activeLine,
     onSelectionChange: handleSelection,
     onChangeText,
