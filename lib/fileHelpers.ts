@@ -1,6 +1,7 @@
 import type { FileResult } from "@/types/editorTypes";
 import { pick, saveDocuments } from "@react-native-documents/picker";
 import { File, Paths } from "expo-file-system";
+import { writeAsStringAsync } from "expo-file-system/legacy";
 
 const extractFileName = (uri: string, fallback: string): string => {
   try {
@@ -25,7 +26,11 @@ const extractFileName = (uri: string, fallback: string): string => {
 
 export const openFile = async (): Promise<FileResult> => {
   try {
-    const results = await pick({ type: ["text/*"] });
+    const results = await pick({
+      type: ["*/*"],
+      mode: "open",
+      requestLongTermAccess: true,
+    });
 
     if (!results || results.length === 0) {
       return { success: false };
@@ -52,12 +57,18 @@ export const saveFile = async (
   content: string,
   fileUri: string,
 ): Promise<FileResult> => {
+  const normalized = content.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
   try {
-    const file = new File(fileUri);
-    file.write(content.replace(/\r\n/g, "\n").replace(/\r/g, "\n"));
+    await writeAsStringAsync(fileUri, normalized);
     return { success: true };
   } catch {
-    return { success: false };
+    try {
+      const file = new File(fileUri);
+      file.write(normalized);
+      return { success: true };
+    } catch {
+      return { success: false };
+    }
   }
 };
 
