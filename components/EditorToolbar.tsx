@@ -47,7 +47,7 @@ export const EditorToolbar = ({
   onSettings,
 }: EditorToolbarProps) => {
   return (
-    <View className="flex-row items-center shrink min-w-0">
+    <View className="flex-row items-center shrink min-w-0 justify-end">
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -60,7 +60,7 @@ export const EditorToolbar = ({
             onCopyAll();
           }}
           disabled={!canCopy}
-          className={`p-2 ${!canCopy ? "opacity-30" : ""}`}
+          className={`p-1.5 ${!canCopy ? "opacity-30" : ""}`}
         >
           <Feather name={copied ? "check" : "copy"} size={18} color={iconColor} />
         </TouchableOpacity>
@@ -70,13 +70,13 @@ export const EditorToolbar = ({
             buzz();
             onDecreaseFontSize();
           }}
-          className="p-2"
+          className="p-1.5"
         >
           <Feather name="minus" size={20} color={iconColor} />
         </TouchableOpacity>
 
         <Text
-          className={`text-xs ${isDark ? "text-dark-200" : "text-white-600"}`}
+          className={`text-xs px-0.5 ${isDark ? "text-dark-200" : "text-white-600"}`}
         >
           {fontSize}pts
         </Text>
@@ -86,7 +86,7 @@ export const EditorToolbar = ({
             buzz();
             onIncreaseFontSize();
           }}
-          className="p-2"
+          className="p-1.5"
         >
           <Feather name="plus" size={20} color={iconColor} />
         </TouchableOpacity>
@@ -97,7 +97,7 @@ export const EditorToolbar = ({
             onUndo();
           }}
           disabled={!canUndo}
-          className={`p-2 ${!canUndo ? "opacity-30" : ""}`}
+          className={`p-1.5 ${!canUndo ? "opacity-30" : ""}`}
         >
           <Feather name="corner-up-left" size={20} color={iconColor} />
         </TouchableOpacity>
@@ -108,7 +108,7 @@ export const EditorToolbar = ({
             onRedo();
           }}
           disabled={!canRedo}
-          className={`p-2 ${!canRedo ? "opacity-30" : ""}`}
+          className={`p-1.5 ${!canRedo ? "opacity-30" : ""}`}
         >
           <Feather name="corner-up-right" size={20} color={iconColor} />
         </TouchableOpacity>
@@ -118,7 +118,7 @@ export const EditorToolbar = ({
             buzz();
             onToggleEditable();
           }}
-          className="p-2"
+          className="p-1.5"
         >
           <MaterialIcons
             name={isEditable ? "edit" : "edit-off"}

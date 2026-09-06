@@ -105,11 +105,11 @@ export default function EditorScreen() {
           isDark ? "bg-dark-600" : "bg-white-200"
         }`}
       >
-        <View className="flex-row items-center mr-2 shrink min-w-0 max-w-[45%]">
+        <View className="flex-1 mr-2 min-w-0 justify-center">
           <Text
             numberOfLines={1}
             ellipsizeMode="middle"
-            className={`text-base font-bold shrink min-w-0 ${
+            className={`text-base font-bold ${
               isDark ? "text-dark-100" : "text-white-900"
             }`}
           >
