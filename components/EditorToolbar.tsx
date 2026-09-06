@@ -57,20 +57,6 @@ export const EditorToolbar = ({
         <TouchableOpacity
           onPress={() => {
             buzz();
-            onToggleEditable();
-          }}
-          className="p-2"
-        >
-          <MaterialIcons
-            name={isEditable ? "edit" : "edit-off"}
-            size={20}
-            color={iconColor}
-          />
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          onPress={() => {
-            buzz();
             onCopyAll();
           }}
           disabled={!canCopy}
@@ -125,6 +111,20 @@ export const EditorToolbar = ({
           className={`p-2 ${!canRedo ? "opacity-30" : ""}`}
         >
           <Feather name="corner-up-right" size={20} color={iconColor} />
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={() => {
+            buzz();
+            onToggleEditable();
+          }}
+          className="p-2"
+        >
+          <MaterialIcons
+            name={isEditable ? "edit" : "edit-off"}
+            size={20}
+            color={iconColor}
+          />
         </TouchableOpacity>
       </ScrollView>
 
