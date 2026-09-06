@@ -23,6 +23,7 @@ export default function EditorScreen() {
     canRedo,
     isEditable,
     fontSize,
+    fontFamily,
     highlightLine,
     showLineNumbers,
     edgeSpacing,
@@ -153,6 +154,7 @@ export default function EditorScreen() {
         isDark={isDark}
         editable={isEditable}
         fontSize={fontSize}
+        fontFamily={fontFamily}
         edgeSpacing={edgeSpacing}
         highlightLine={highlightLine}
         showLineNumbers={showLineNumbers}

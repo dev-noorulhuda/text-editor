@@ -15,6 +15,7 @@ export const Editor = ({
   isDark,
   editable,
   fontSize,
+  fontFamily = "monospace",
   edgeSpacing,
   highlightLine,
   showLineNumbers,
@@ -137,6 +138,7 @@ export const Editor = ({
                 fontWeight: "400",
                 textAlign: "right",
                 width: "100%",
+                fontFamily: fontFamily === "system" ? undefined : fontFamily,
               }}
             >
               {i + 1}
@@ -165,6 +167,7 @@ export const Editor = ({
           style={{
             fontSize,
             lineHeight,
+            fontFamily: fontFamily === "system" ? undefined : fontFamily,
             paddingLeft: showLineNumbers
               ? 8
               : BASE_EDGE_SPACING + (edgeSpacing ?? 0),

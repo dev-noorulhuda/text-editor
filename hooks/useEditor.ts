@@ -1,5 +1,6 @@
+import { useEditorHistory } from "@/hooks/useEditorHistory";
+import { useEditorSettings } from "@/hooks/useEditorSettings";
 import { openFile, saveFile, saveFileAs } from "@/lib/fileHelpers";
-import { loadSettings, saveSettings } from "@/lib/settingsStore";
 import {
   deleteFileContent,
   generateId,
@@ -8,63 +9,15 @@ import {
   saveFileContent,
 } from "@/lib/tabStore";
 import type { FileData } from "@/types/editorTypes";
-import { useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-
-const MAX_HISTORY = 100;
 
 export const useEditor = () => {
   const [files, setFiles] = useState<FileData[]>(loadInitialFiles);
   const [activeFileId, setActiveFileId] = useState(() => files[0]?.id ?? "");
   const activeFile = files.find((f) => f.id === activeFileId) ?? files[0];
 
-  const savedSettings = useRef(loadSettings());
-
-  const [canUndo, setCanUndo] = useState(false);
-  const [canRedo, setCanRedo] = useState(false);
-  const [isEditable, setIsEditable] = useState(
-    savedSettings.current.isEditable,
-  );
-  const [fontSize, setFontSize] = useState(savedSettings.current.fontSize);
-  const [colorScheme, setColorScheme] = useState<"light" | "dark">(
-    savedSettings.current.colorScheme,
-  );
-  const [highlightLine, setHighlightLine] = useState(
-    savedSettings.current.highlightLine,
-  );
-  const [showLineNumbers, setShowLineNumbers] = useState(
-    savedSettings.current.showLineNumbers,
-  );
-  const [edgeSpacing, setEdgeSpacing] = useState(
-    savedSettings.current.edgeSpacing,
-  );
-  const [openKeyboardAtStart, setOpenKeyboardAtStart] = useState(
-    savedSettings.current.openKeyboardAtStart,
-  );
-
+  const settings = useEditorSettings();
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const undoStackRef = useRef<Map<string, string[]> | null>(null);
-  if (!undoStackRef.current) undoStackRef.current = new Map();
-  const undoStack = undoStackRef.current;
-
-  const redoStackRef = useRef<Map<string, string[]> | null>(null);
-  if (!redoStackRef.current) redoStackRef.current = new Map();
-  const redoStack = redoStackRef.current;
-
-  const lastContentRefInner = useRef<Map<string, string> | null>(null);
-  if (!lastContentRefInner.current) lastContentRefInner.current = new Map();
-  const lastContentRef = lastContentRefInner.current;
-
-  useEffect(() => {
-    if (activeFile) {
-      setCanUndo((undoStack.get(activeFile.id)?.length ?? 0) > 0);
-      setCanRedo((redoStack.get(activeFile.id)?.length ?? 0) > 0);
-    } else {
-      setCanUndo(false);
-      setCanRedo(false);
-    }
-  }, [activeFileId]);
 
   useEffect(() => {
     return () => {
@@ -74,37 +27,6 @@ export const useEditor = () => {
     };
   }, []);
 
-  useEffect(() => {
-    saveSettings({
-      colorScheme,
-      isEditable,
-      fontSize,
-      highlightLine,
-      showLineNumbers,
-      edgeSpacing,
-      openKeyboardAtStart,
-    });
-  }, [
-    colorScheme,
-    isEditable,
-    fontSize,
-    highlightLine,
-    showLineNumbers,
-    edgeSpacing,
-    openKeyboardAtStart,
-  ]);
-
-  useFocusEffect(
-    useCallback(() => {
-      const fresh = loadSettings();
-      setHighlightLine(fresh.highlightLine);
-      setShowLineNumbers(fresh.showLineNumbers);
-      setFontSize(fresh.fontSize);
-      setEdgeSpacing(fresh.edgeSpacing);
-      setOpenKeyboardAtStart(fresh.openKeyboardAtStart);
-    }, []),
-  );
-
   const updateFile = useCallback((id: string, updates: Partial<FileData>) => {
     setFiles((prev) => {
       const updated = prev.map((f) => (f.id === id ? { ...f, ...updates } : f));
@@ -112,22 +34,14 @@ export const useEditor = () => {
     });
   }, []);
 
+  const { canUndo, canRedo, recordChange, handleUndo, handleRedo } =
+    useEditorHistory(activeFile, updateFile, saveFileContent);
+
   const handleContentChange = useCallback(
     (text: string) => {
       if (!activeFile) return;
 
-      const lastContent = lastContentRef.get(activeFile.id);
-      if (lastContent !== undefined && lastContent !== text) {
-        const stack = undoStack.get(activeFile.id) ?? [];
-        stack.push(lastContent);
-        if (stack.length > MAX_HISTORY) stack.shift();
-        undoStack.set(activeFile.id, stack);
-        redoStack.delete(activeFile.id);
-        setCanUndo(true);
-        setCanRedo(false);
-      }
-      lastContentRef.set(activeFile.id, text);
-
+      recordChange(text);
       updateFile(activeFile.id, { content: text, isModified: true });
 
       if (saveTimeoutRef.current) {
@@ -138,7 +52,7 @@ export const useEditor = () => {
         saveFileContent(fileId, text);
       }, 400);
     },
-    [activeFile, updateFile],
+    [activeFile, recordChange, updateFile],
   );
 
   const handleNew = useCallback(() => {
@@ -224,12 +138,20 @@ export const useEditor = () => {
           return [newFile];
         }
 
+        const closedIndex = prev.findIndex((f) => f.id === id);
         const updated = prev.filter((f) => f.id !== id);
         deleteFileContent(id);
         persistTabs(updated);
 
         if (activeFileId === id) {
-          setActiveFileId(updated[0]?.id ?? "");
+          const nextIndex = Math.min(
+            closedIndex === -1 ? 0 : closedIndex,
+            updated.length - 1,
+          );
+          const nextActive = updated[Math.max(0, nextIndex)];
+          if (nextActive) {
+            setActiveFileId(nextActive.id);
+          }
         }
 
         return updated;
@@ -238,67 +160,13 @@ export const useEditor = () => {
     [activeFileId],
   );
 
-  const handleUndo = useCallback(() => {
-    if (!activeFile) return;
-
-    const stack = undoStack.get(activeFile.id);
-    if (!stack || stack.length === 0) return;
-
-    const currentContent = activeFile.content;
-    const redoStackForFile = redoStack.get(activeFile.id) ?? [];
-    redoStackForFile.push(currentContent);
-    redoStack.set(activeFile.id, redoStackForFile);
-
-    const prevContent = stack.pop()!;
-    if (stack.length === 0) {
-      undoStack.delete(activeFile.id);
-    }
-
-    lastContentRef.set(activeFile.id, prevContent);
-    updateFile(activeFile.id, { content: prevContent, isModified: true });
-    saveFileContent(activeFile.id, prevContent);
-
-    setCanUndo(stack.length > 0);
-    setCanRedo(true);
-  }, [activeFile, updateFile]);
-
-  const handleRedo = useCallback(() => {
-    if (!activeFile) return;
-
-    const stack = redoStack.get(activeFile.id);
-    if (!stack || stack.length === 0) return;
-
-    const currentContent = activeFile.content;
-    const undoStackForFile = undoStack.get(activeFile.id) ?? [];
-    undoStackForFile.push(currentContent);
-    undoStack.set(activeFile.id, undoStackForFile);
-
-    const nextContent = stack.pop()!;
-    if (stack.length === 0) {
-      redoStack.delete(activeFile.id);
-    }
-
-    lastContentRef.set(activeFile.id, nextContent);
-    updateFile(activeFile.id, { content: nextContent, isModified: true });
-    saveFileContent(activeFile.id, nextContent);
-
-    setCanUndo(true);
-    setCanRedo(stack.length > 0);
-  }, [activeFile, updateFile]);
-
   return {
     activeFile,
     activeFileId,
     files,
     canUndo,
     canRedo,
-    isEditable,
-    fontSize,
-    colorScheme,
-    highlightLine,
-    showLineNumbers,
-    edgeSpacing,
-    openKeyboardAtStart,
+    ...settings,
     handleContentChange,
     handleNew,
     handleOpen,
@@ -308,34 +176,5 @@ export const useEditor = () => {
     handleRedo,
     handleClose,
     setActiveFileId,
-    toggleEditable: useCallback(() => setIsEditable((prev) => !prev), []),
-    increaseFontSize: useCallback(
-      () => setFontSize((prev) => Math.min(prev + 2, 40)),
-      [],
-    ),
-    decreaseFontSize: useCallback(
-      () => setFontSize((prev) => Math.max(prev - 2, 10)),
-      [],
-    ),
-    toggleColorScheme: useCallback(
-      () => setColorScheme((prev) => (prev === "dark" ? "light" : "dark")),
-      [],
-    ),
-    toggleHighlightLine: useCallback(
-      () => setHighlightLine((prev) => !prev),
-      [],
-    ),
-    toggleShowLineNumbers: useCallback(
-      () => setShowLineNumbers((prev) => !prev),
-      [],
-    ),
-    increaseEdgeSpacing: useCallback(
-      () => setEdgeSpacing((prev) => Math.min(prev + 2, 40)),
-      [],
-    ),
-    decreaseEdgeSpacing: useCallback(
-      () => setEdgeSpacing((prev) => Math.max(prev - 2, 0)),
-      [],
-    ),
   };
 };

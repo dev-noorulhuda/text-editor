@@ -1,5 +1,7 @@
-import { AnimatedToggle } from "@/components/AnimatedToggle";
 import { EdgeSpacingModal } from "@/components/EdgeSpacingModal";
+import { FontFamilyModal } from "@/components/FontFamilyModal";
+import { FontSizeRow } from "@/components/FontSizeRow";
+import { SettingRow } from "@/components/SettingRow";
 import { colors } from "@/lib/colors";
 import { loadSettings, saveSettings } from "@/lib/settingsStore";
 import { Feather, MaterialIcons } from "@expo/vector-icons";
@@ -9,50 +11,17 @@ import { useCallback, useRef, useState } from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-interface SettingRowProps {
-  icon: React.ReactNode;
-  label: string;
-  description: string;
-  isDark: boolean;
-  enabled: boolean;
-  onToggle: () => void;
-}
-
-const SettingRow = ({
-  icon,
-  label,
-  description,
-  isDark,
-  enabled,
-  onToggle,
-}: SettingRowProps) => {
-  const textColor = isDark ? "text-dark-100" : "text-white-900";
-  const descColor = isDark ? "text-dark-300" : "text-white-500";
-
-  return (
-    <View
-      className={`flex-row items-center justify-between py-3 ${
-        isDark ? "border-dark-400" : "border-white-300"
-      } border-b`}
-    >
-      <View className="flex-row items-center flex-1 mr-4">
-        <View className="mr-3">{icon}</View>
-        <View className="flex-1">
-          <Text className={`text-sm font-medium ${textColor}`}>{label}</Text>
-          <Text className={`text-xs mt-0.5 ${descColor}`}>{description}</Text>
-        </View>
-      </View>
-      <AnimatedToggle enabled={enabled} onToggle={onToggle} isDark={isDark} />
-    </View>
-  );
+const formatFontFamily = (family: string) => {
+  return family.charAt(0).toUpperCase() + family.slice(1);
 };
 
 export default function SettingsScreen() {
-  const { colorScheme } = useColorScheme();
+  const { colorScheme, setColorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
 
   const [settings, setSettings] = useState(loadSettings);
   const [showSpacingModal, setShowSpacingModal] = useState(false);
+  const [showFontFamilyModal, setShowFontFamilyModal] = useState(false);
   const saveTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const update = useCallback(
@@ -67,6 +36,12 @@ export default function SettingsScreen() {
     [],
   );
 
+  const handleToggleTheme = useCallback(() => {
+    const next = isDark ? "light" : "dark";
+    setColorScheme(next);
+    update("colorScheme", next);
+  }, [isDark, setColorScheme, update]);
+
   const bg = isDark ? "bg-dark-500" : "bg-white-100";
   const headerBg = isDark ? "bg-dark-600" : "bg-white-200";
   const textPrimary = isDark ? "text-dark-100" : "text-white-900";
@@ -77,6 +52,7 @@ export default function SettingsScreen() {
 
   return (
     <SafeAreaView className={`flex-1 ${bg}`} edges={["top", "bottom"]}>
+      {/* Header */}
       <View className={`flex-row items-center gap-3 px-4 py-3 ${headerBg}`}>
         <TouchableOpacity onPress={() => router.back()} className="p-1">
           <Feather name="arrow-left" size={22} color={iconColor} />
@@ -85,22 +61,27 @@ export default function SettingsScreen() {
       </View>
 
       <ScrollView className="flex-1 px-4 py-4">
+        {/* Section 1: Appearance */}
         <View className={`rounded-lg border p-4 mb-4 ${cardBg} ${cardBorder}`}>
           <Text
             className={`text-xs font-semibold uppercase mb-3 ${textSecondary}`}
           >
-            Editor
+            Appearance
           </Text>
 
           <SettingRow
             icon={
-              <MaterialIcons name="highlight" size={22} color={iconColor} />
+              <MaterialIcons
+                name={isDark ? "dark-mode" : "light-mode"}
+                size={22}
+                color={iconColor}
+              />
             }
-            label="Highlight current line"
-            description="Shows a subtle background on the line where your cursor is"
+            label="Dark theme"
+            description="Use dark background and high-contrast text"
             isDark={isDark}
-            enabled={settings.highlightLine}
-            onToggle={() => update("highlightLine", !settings.highlightLine)}
+            enabled={isDark}
+            onToggle={handleToggleTheme}
           />
 
           <SettingRow
@@ -119,6 +100,71 @@ export default function SettingsScreen() {
               update("showLineNumbers", !settings.showLineNumbers)
             }
           />
+
+          <SettingRow
+            icon={
+              <MaterialIcons name="highlight" size={22} color={iconColor} />
+            }
+            label="Highlight current line"
+            description="Shows a subtle background on the line where cursor is"
+            isDark={isDark}
+            enabled={settings.highlightLine}
+            onToggle={() => update("highlightLine", !settings.highlightLine)}
+            isLast
+          />
+        </View>
+
+        {/* Section 2: Font Settings */}
+        <View className={`rounded-lg border p-4 mb-4 ${cardBg} ${cardBorder}`}>
+          <Text
+            className={`text-xs font-semibold uppercase mb-3 ${textSecondary}`}
+          >
+            Font Settings
+          </Text>
+
+          <FontSizeRow
+            fontSize={settings.fontSize}
+            isDark={isDark}
+            onChange={(size) => update("fontSize", size)}
+          />
+
+          <TouchableOpacity
+            onPress={() => setShowFontFamilyModal(true)}
+            className="flex-row items-center justify-between py-3"
+          >
+            <View className="flex-row items-center flex-1 mr-4">
+              <View className="mr-3">
+                <MaterialIcons
+                  name="font-download"
+                  size={22}
+                  color={iconColor}
+                />
+              </View>
+              <View className="flex-1">
+                <Text className={`text-sm font-medium ${textPrimary}`}>
+                  Font family
+                </Text>
+                <Text className={`text-xs mt-0.5 ${textSecondary}`}>
+                  Typeface used across the editor
+                </Text>
+              </View>
+            </View>
+            <View className="flex-row items-center gap-1.5">
+              <Text className={`text-sm font-bold ${textPrimary}`}>
+                {formatFontFamily(settings.fontFamily ?? "monospace")}
+              </Text>
+              <Feather name="chevron-right" size={18} color={iconColor} />
+            </View>
+          </TouchableOpacity>
+        </View>
+
+        {/* Section 3: Editor Settings */}
+        <View className={`rounded-lg border p-4 ${cardBg} ${cardBorder}`}>
+          <Text
+            className={`text-xs font-semibold uppercase mb-3 ${textSecondary}`}
+          >
+            Editor Settings
+          </Text>
 
           <TouchableOpacity
             onPress={() => setShowSpacingModal(true)}
@@ -146,54 +192,6 @@ export default function SettingsScreen() {
               <Feather name="chevron-right" size={18} color={iconColor} />
             </View>
           </TouchableOpacity>
-          <View className="flex-row items-center justify-between py-3">
-            <View className="flex-row items-center flex-1 mr-4">
-              <View className="mr-3">
-                <MaterialIcons name="format-size" size={22} color={iconColor} />
-              </View>
-              <View className="flex-1">
-                <Text className={`text-sm font-medium ${textPrimary}`}>
-                  Font size
-                </Text>
-                <Text className={`text-xs mt-0.5 ${textSecondary}`}>
-                  Default font size for new sessions
-                </Text>
-              </View>
-            </View>
-            <View className="flex-row items-center gap-2">
-              <TouchableOpacity
-                onPress={() => {
-                  const next = Math.max(settings.fontSize - 2, 10);
-                  update("fontSize", next);
-                }}
-                className={`p-1.5 rounded-full border ${cardBorder}`}
-              >
-                <Feather name="minus" size={16} color={iconColor} />
-              </TouchableOpacity>
-              <Text
-                className={`text-sm font-bold w-12 text-center ${textPrimary}`}
-              >
-                {settings.fontSize}pts
-              </Text>
-              <TouchableOpacity
-                onPress={() => {
-                  const next = Math.min(settings.fontSize + 2, 40);
-                  update("fontSize", next);
-                }}
-                className={`p-1.5 rounded-full border ${cardBorder}`}
-              >
-                <Feather name="plus" size={16} color={iconColor} />
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-
-        <View className={`rounded-lg border p-4 ${cardBg} ${cardBorder}`}>
-          <Text
-            className={`text-xs font-semibold uppercase mb-3 ${textSecondary}`}
-          >
-            App Settings
-          </Text>
 
           <SettingRow
             icon={<MaterialIcons name="keyboard" size={22} color={iconColor} />}
@@ -204,16 +202,27 @@ export default function SettingsScreen() {
             onToggle={() =>
               update("openKeyboardAtStart", !settings.openKeyboardAtStart)
             }
+            isLast
           />
         </View>
       </ScrollView>
 
+      {/* Edge Spacing Modal */}
       <EdgeSpacingModal
         visible={showSpacingModal}
         value={settings.edgeSpacing}
         isDark={isDark}
         onClose={() => setShowSpacingModal(false)}
         onConfirm={(val) => update("edgeSpacing", val)}
+      />
+
+      {/* Font Family Modal */}
+      <FontFamilyModal
+        visible={showFontFamilyModal}
+        value={settings.fontFamily ?? "monospace"}
+        isDark={isDark}
+        onClose={() => setShowFontFamilyModal(false)}
+        onConfirm={(family) => update("fontFamily", family)}
       />
     </SafeAreaView>
   );

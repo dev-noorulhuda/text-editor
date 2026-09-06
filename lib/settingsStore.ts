@@ -2,10 +2,13 @@ import { File, Paths } from "expo-file-system";
 
 const SETTINGS_FILE = "settings.json";
 
+export type FontFamily = "monospace" | "system" | "serif";
+
 export interface AppSettings {
   colorScheme: "light" | "dark";
   isEditable: boolean;
   fontSize: number;
+  fontFamily: FontFamily;
   highlightLine: boolean;
   showLineNumbers: boolean;
   edgeSpacing: number;
@@ -16,6 +19,7 @@ const DEFAULTS: AppSettings = {
   colorScheme: "light",
   isEditable: true,
   fontSize: 16,
+  fontFamily: "monospace",
   highlightLine: true,
   showLineNumbers: false,
   edgeSpacing: 2,
