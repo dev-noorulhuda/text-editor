@@ -3,10 +3,10 @@ import * as WebBrowser from "expo-web-browser";
 import { Linking } from "react-native";
 
 export const PRIVACY_POLICY_URL =
-  "https://texteditor-app.netlify.app/privacy";
+  "https://norvexiq-texteditor.vercel.app/privacy.html";
 export const TERMS_CONDITIONS_URL =
-  "https://texteditor-app.netlify.app/terms";
-export const WEBSITE_URL = "https://texteditor-app.netlify.app";
+  "https://norvexiq-texteditor.vercel.app/terms.html";
+export const WEBSITE_URL = "https://norvexiq-texteditor.vercel.app";
 
 export const getAppVersion = (): string => {
   return (

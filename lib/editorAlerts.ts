@@ -1,6 +1,6 @@
+import { saveFile, saveFileAs } from "@/lib/fileHelpers";
 import { generateId } from "@/lib/tabStore";
 import type { FileData } from "@/types/editorTypes";
-import { Alert } from "react-native";
 
 export const getTabsAfterClose = (
   prev: FileData[],
@@ -37,35 +37,22 @@ export const getTabsAfterClose = (
   return { updated, nextActiveId };
 };
 
-export const confirmCloseFile = (
-  file: FileData | undefined,
-  onConfirmClose: () => void,
-  onSaveAndClose: () => Promise<void>,
-): void => {
-  if (!file || !file.isModified) {
-    onConfirmClose();
-    return;
+export const saveAndCloseFile = async (
+  target: FileData,
+  onClose: (id: string) => void,
+): Promise<boolean> => {
+  if (target.uri) {
+    const res = await saveFile(target.content, target.uri);
+    if (res.success) {
+      onClose(target.id);
+      return true;
+    }
+  } else {
+    const res = await saveFileAs(target.content, target.name);
+    if (res.success) {
+      onClose(target.id);
+      return true;
+    }
   }
-
-  Alert.alert(
-    "Unsaved Changes",
-    `Do you want to save changes to "${file.name}" before closing?`,
-    [
-      {
-        text: "Cancel",
-        style: "cancel",
-      },
-      {
-        text: "Close Anyway",
-        style: "destructive",
-        onPress: onConfirmClose,
-      },
-      {
-        text: "Save",
-        onPress: () => {
-          void onSaveAndClose();
-        },
-      },
-    ],
-  );
+  return false;
 };

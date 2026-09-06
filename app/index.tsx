@@ -1,6 +1,7 @@
 import { Editor } from "@/components/Editor";
 import { EditorToolbar } from "@/components/EditorToolbar";
 import { Tabs } from "@/components/Tabs";
+import { UnsavedChangesModal } from "@/components/UnsavedChangesModal";
 import { useEditor } from "@/hooks/useEditor";
 import { colors } from "@/lib/colors";
 import { detectLanguage } from "@/lib/languageRegistry";
@@ -38,6 +39,10 @@ export default function EditorScreen() {
     handleUndo,
     handleRedo,
     handleClose,
+    closingFile,
+    handleDiscardClose,
+    handleSaveClose,
+    handleCancelClose,
     setActiveFileId,
     toggleEditable,
     increaseFontSize,
@@ -180,6 +185,15 @@ export default function EditorScreen() {
         autoFocus={openKeyboardAtStart}
         onChangeText={handleContentChange}
         onSelectionChange={handleSelectionChange}
+      />
+
+      <UnsavedChangesModal
+        visible={!!closingFile}
+        fileName={closingFile?.name ?? ""}
+        isDark={isDark}
+        onCancel={handleCancelClose}
+        onDiscard={handleDiscardClose}
+        onSave={handleSaveClose}
       />
     </SafeAreaView>
   );

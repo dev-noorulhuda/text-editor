@@ -1,6 +1,6 @@
 import { useEditorHistory } from "@/hooks/useEditorHistory";
 import { useEditorSettings } from "@/hooks/useEditorSettings";
-import { confirmCloseFile, getTabsAfterClose } from "@/lib/editorAlerts";
+import { getTabsAfterClose, saveAndCloseFile } from "@/lib/editorAlerts";
 import { openFile, saveFile, saveFileAs } from "@/lib/fileHelpers";
 import {
   deleteFileContent,
@@ -47,10 +47,7 @@ export const useEditor = () => {
             saveTimeoutRef.current = null;
           }
           if (activeFileRef.current) {
-            saveFileContent(
-              activeFileRef.current.id,
-              activeFileRef.current.content,
-            );
+            saveFileContent(activeFileRef.current.id, activeFileRef.current.content);
           }
         }
       },
@@ -58,23 +55,15 @@ export const useEditor = () => {
 
     return () => {
       subscription.remove();
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
-      }
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
       if (activeFileRef.current) {
-        saveFileContent(
-          activeFileRef.current.id,
-          activeFileRef.current.content,
-        );
+        saveFileContent(activeFileRef.current.id, activeFileRef.current.content);
       }
     };
   }, []);
 
   const updateFile = useCallback((id: string, updates: Partial<FileData>) => {
-    setFiles((prev) => {
-      const updated = prev.map((f) => (f.id === id ? { ...f, ...updates } : f));
-      return updated;
-    });
+    setFiles((prev) => prev.map((f) => (f.id === id ? { ...f, ...updates } : f)));
   }, []);
 
   const { canUndo, canRedo, recordChange, handleUndo, handleRedo } =
@@ -83,17 +72,12 @@ export const useEditor = () => {
   const handleContentChange = useCallback(
     (text: string) => {
       if (!activeFile) return;
-
       recordChange(text);
       updateFile(activeFile.id, { content: text, isModified: true });
 
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
-      }
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
       const fileId = activeFile.id;
-      saveTimeoutRef.current = setTimeout(() => {
-        saveFileContent(fileId, text);
-      }, 300);
+      saveTimeoutRef.current = setTimeout(() => saveFileContent(fileId, text), 300);
     },
     [activeFile, recordChange, updateFile],
   );
@@ -199,31 +183,41 @@ export const useEditor = () => {
     [activeFileId, setActiveFileId],
   );
 
+  const [closingFile, setClosingFile] = useState<FileData | null>(null);
+
   const handleClose = useCallback(
     (id: string) => {
       const target = files.find((f) => f.id === id);
-      confirmCloseFile(
-        target,
-        () => performClose(id),
-        async () => {
-          if (!target) return;
-          if (target.uri) {
-            const res = await saveFile(target.content, target.uri);
-            if (res.success) performClose(id);
-          } else {
-            const res = await saveFileAs(target.content, target.name);
-            if (res.success) performClose(id);
-          }
-        },
-      );
+      if (!target) return;
+      if (!target.isModified) {
+        performClose(id);
+        return;
+      }
+      setClosingFile(target);
     },
     [files, performClose],
   );
+
+  const handleDiscardClose = useCallback(() => {
+    if (!closingFile) return;
+    const id = closingFile.id;
+    setClosingFile(null);
+    performClose(id);
+  }, [closingFile, performClose]);
+
+  const handleSaveClose = useCallback(async () => {
+    if (!closingFile) return;
+    const ok = await saveAndCloseFile(closingFile, performClose);
+    if (ok) setClosingFile(null);
+  }, [closingFile, performClose]);
+
+  const handleCancelClose = useCallback(() => setClosingFile(null), []);
 
   return {
     activeFile,
     activeFileId,
     files,
+    closingFile,
     canUndo,
     canRedo,
     ...settings,
@@ -235,6 +229,9 @@ export const useEditor = () => {
     handleUndo,
     handleRedo,
     handleClose,
+    handleDiscardClose,
+    handleSaveClose,
+    handleCancelClose,
     setActiveFileId,
   };
 };
