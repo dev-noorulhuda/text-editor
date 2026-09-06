@@ -20,7 +20,7 @@ export interface EditorCanvasProps {
   padLeft: number;
   wordWrap: boolean;
   canvasWidth: DimensionValue;
-  totalHeight: number;
+  totalHeight?: number;
   highlightLine: boolean;
   highlightTop: number;
   currentLineHeight: number;
@@ -87,7 +87,6 @@ export const EditorCanvas = forwardRef<TextInput, EditorCanvasProps>(
         }}
         style={{
           flex: 1,
-          minWidth: "100%",
           width: wordWrap ? "100%" : canvasWidth,
           minHeight: totalHeight,
           position: "relative",

@@ -15,6 +15,7 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  type DimensionValue,
 } from "react-native";
 
 export const Editor = ({
@@ -116,10 +117,13 @@ export const Editor = ({
   const charEstimate = Math.ceil(fontSize * 0.65);
   const textContentWidth = maxLineLength * charEstimate + padLeft + 20;
 
-  const canvasWidth =
-    wordWrap || textContentWidth <= availableCanvasWidth
+  const isWiderThanAvailable =
+    !wordWrap && textContentWidth > availableCanvasWidth;
+  const canvasWidth: DimensionValue = isWiderThanAvailable
+    ? textContentWidth
+    : wordWrap
       ? "100%"
-      : textContentWidth;
+      : availableCanvasWidth;
 
   const gutterColor = isDark ? colors.dark[300] : colors.white[500];
   const resolvedFont = resolveFontFamily(fontFamily);
@@ -128,7 +132,10 @@ export const Editor = ({
     wordWrap && visualLines.length > 0 ? visualLines.length : 0,
     lines.length,
   );
-  const totalHeight = Math.max(rowCount * lineHeight + 24, viewportHeight);
+  const textContentHeight =
+    CONTENT_PADDING_TOP + rowCount * lineHeight + 24;
+  const isTallerThanViewport = textContentHeight > viewportHeight;
+  const totalHeight = isTallerThanViewport ? textContentHeight : undefined;
 
   const focusInput = useCallback(() => {
     if (editable) inputRef.current?.focus();
@@ -167,8 +174,6 @@ export const Editor = ({
       style={{ flex: 1, marginBottom: keyboardHeight }}
       contentContainerStyle={{
         flexGrow: 1,
-        minHeight: "100%",
-        paddingBottom: 24,
       }}
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator
@@ -212,7 +217,6 @@ export const Editor = ({
             className="flex-1"
             contentContainerStyle={{
               flexGrow: 1,
-              minWidth: "100%",
               minHeight: totalHeight,
             }}
             keyboardShouldPersistTaps="handled"
