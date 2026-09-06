@@ -1,19 +1,51 @@
-import { File, Paths } from "expo-file-system";
 import type { FileData, TabMetadata } from "@/types/editorTypes";
+import { Directory, File, Paths } from "expo-file-system";
 
 const TABS_DIR = "tabs";
 const TABS_INDEX = "tabs_index.json";
 const TABS_META = "tabs_meta.json";
+const ACTIVE_TAB_FILE = "active_tab.json";
 
 export const generateId = (): string => {
   return Date.now().toString(36) + Math.random().toString(36).slice(2);
+};
+
+const ensureTabsDirectory = (): Directory => {
+  const dir = new Directory(Paths.document, TABS_DIR);
+  try {
+    const file = new File(Paths.document, TABS_DIR);
+    if (file.exists) {
+      try {
+        const info = file.info();
+        if (info.exists) {
+          file.delete();
+        }
+      } catch {
+        // file.info() throws when the path is a directory (which is what we want)
+      }
+    }
+  } catch {
+    // ignore
+  }
+
+  try {
+    if (!dir.exists) {
+      dir.create({ intermediates: true, idempotent: true });
+    }
+  } catch {
+    // ignore
+  }
+  return dir;
 };
 
 export const loadTabsIndex = (): string[] => {
   try {
     const file = new File(Paths.document, TABS_INDEX);
     if (file.exists) {
-      return JSON.parse(file.textSync()) as string[];
+      const text = file.textSync();
+      if (text) {
+        return JSON.parse(text) as string[];
+      }
     }
   } catch {
     // ignore
@@ -23,11 +55,10 @@ export const loadTabsIndex = (): string[] => {
 
 export const saveTabsIndex = (ids: string[]): void => {
   try {
-    const dir = new File(Paths.document, TABS_DIR).parentDirectory;
-    if (!dir.exists) {
-      dir.create();
-    }
     const file = new File(Paths.document, TABS_INDEX);
+    if (!file.exists) {
+      file.create({ overwrite: true });
+    }
     file.write(JSON.stringify(ids));
   } catch {
     // ignore
@@ -48,11 +79,11 @@ export const loadFileContent = (id: string): string => {
 
 export const saveFileContent = (id: string, content: string): void => {
   try {
-    const dir = new File(Paths.document, TABS_DIR);
-    if (!dir.exists) {
-      dir.create();
-    }
+    ensureTabsDirectory();
     const file = new File(Paths.document, TABS_DIR, `${id}.txt`);
+    if (!file.exists) {
+      file.create({ overwrite: true });
+    }
     file.write(content);
   } catch {
     // ignore
@@ -74,7 +105,10 @@ export const loadMetaData = (): Record<string, TabMetadata> => {
   try {
     const file = new File(Paths.document, TABS_META);
     if (file.exists) {
-      return JSON.parse(file.textSync()) as Record<string, TabMetadata>;
+      const text = file.textSync();
+      if (text) {
+        return JSON.parse(text) as Record<string, TabMetadata>;
+      }
     }
   } catch {
     // ignore
@@ -85,7 +119,35 @@ export const loadMetaData = (): Record<string, TabMetadata> => {
 export const saveMetaData = (meta: Record<string, TabMetadata>): void => {
   try {
     const file = new File(Paths.document, TABS_META);
+    if (!file.exists) {
+      file.create({ overwrite: true });
+    }
     file.write(JSON.stringify(meta));
+  } catch {
+    // ignore
+  }
+};
+
+export const loadActiveTabId = (): string | null => {
+  try {
+    const file = new File(Paths.document, ACTIVE_TAB_FILE);
+    if (file.exists) {
+      const id = file.textSync().trim();
+      return id || null;
+    }
+  } catch {
+    // ignore
+  }
+  return null;
+};
+
+export const saveActiveTabId = (id: string): void => {
+  try {
+    const file = new File(Paths.document, ACTIVE_TAB_FILE);
+    if (!file.exists) {
+      file.create({ overwrite: true });
+    }
+    file.write(id);
   } catch {
     // ignore
   }
@@ -108,15 +170,19 @@ export const loadInitialFiles = (): FileData[] => {
   const meta = loadMetaData();
 
   if (ids.length === 0) {
-    return [
+    const initialId = generateId();
+    const initialFiles: FileData[] = [
       {
-        id: generateId(),
+        id: initialId,
         name: "Untitled",
         content: "",
         uri: null,
         isModified: false,
       },
     ];
+    persistTabs(initialFiles);
+    saveActiveTabId(initialId);
+    return initialFiles;
   }
 
   return ids.map((id) => ({

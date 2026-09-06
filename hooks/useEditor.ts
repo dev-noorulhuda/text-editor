@@ -4,25 +4,67 @@ import { openFile, saveFile, saveFileAs } from "@/lib/fileHelpers";
 import {
   deleteFileContent,
   generateId,
+  loadActiveTabId,
   loadInitialFiles,
   persistTabs,
+  saveActiveTabId,
   saveFileContent,
 } from "@/lib/tabStore";
 import type { FileData } from "@/types/editorTypes";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { AppState, type AppStateStatus } from "react-native";
 
 export const useEditor = () => {
   const [files, setFiles] = useState<FileData[]>(loadInitialFiles);
-  const [activeFileId, setActiveFileId] = useState(() => files[0]?.id ?? "");
+  const [activeFileId, setActiveFileIdState] = useState(() => {
+    const savedActiveId = loadActiveTabId();
+    if (savedActiveId && files.some((f) => f.id === savedActiveId)) {
+      return savedActiveId;
+    }
+    return files[0]?.id ?? "";
+  });
+
+  const setActiveFileId = useCallback((id: string) => {
+    setActiveFileIdState(id);
+    saveActiveTabId(id);
+  }, []);
+
   const activeFile = files.find((f) => f.id === activeFileId) ?? files[0];
+  const activeFileRef = useRef(activeFile);
+  activeFileRef.current = activeFile;
 
   const settings = useEditorSettings();
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
+    const subscription = AppState.addEventListener(
+      "change",
+      (status: AppStateStatus) => {
+        if (status === "background" || status === "inactive") {
+          if (saveTimeoutRef.current) {
+            clearTimeout(saveTimeoutRef.current);
+            saveTimeoutRef.current = null;
+          }
+          if (activeFileRef.current) {
+            saveFileContent(
+              activeFileRef.current.id,
+              activeFileRef.current.content,
+            );
+          }
+        }
+      },
+    );
+
     return () => {
+      subscription.remove();
       if (saveTimeoutRef.current) {
         clearTimeout(saveTimeoutRef.current);
+      }
+      if (activeFileRef.current) {
+        saveFileContent(
+          activeFileRef.current.id,
+          activeFileRef.current.content,
+        );
       }
     };
   }, []);
@@ -50,7 +92,7 @@ export const useEditor = () => {
       const fileId = activeFile.id;
       saveTimeoutRef.current = setTimeout(() => {
         saveFileContent(fileId, text);
-      }, 400);
+      }, 300);
     },
     [activeFile, recordChange, updateFile],
   );
@@ -71,7 +113,8 @@ export const useEditor = () => {
       return updated;
     });
     setActiveFileId(newId);
-  }, []);
+    saveFileContent(newId, "");
+  }, [setActiveFileId]);
 
   const handleOpen = useCallback(async () => {
     const result = await openFile();
@@ -93,7 +136,7 @@ export const useEditor = () => {
       setActiveFileId(newId);
       saveFileContent(newId, result.content);
     }
-  }, []);
+  }, [setActiveFileId]);
 
   const handleSaveAs = useCallback(async () => {
     if (!activeFile) return;
@@ -135,6 +178,7 @@ export const useEditor = () => {
           deleteFileContent(id);
           persistTabs([newFile]);
           setActiveFileId(newId);
+          saveFileContent(newId, "");
           return [newFile];
         }
 
@@ -157,7 +201,7 @@ export const useEditor = () => {
         return updated;
       });
     },
-    [activeFileId],
+    [activeFileId, setActiveFileId],
   );
 
   return {
