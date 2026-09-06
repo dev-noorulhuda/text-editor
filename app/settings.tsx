@@ -1,13 +1,15 @@
-import { useState, useCallback, useRef } from "react";
-import { router } from "expo-router";
-import { useColorScheme } from "nativewind";
-import { Feather } from "@expo/vector-icons";
-import { TouchableOpacity, View, Text, ScrollView, Switch } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { AnimatedToggle } from "@/components/AnimatedToggle";
 import { colors } from "@/lib/colors";
 import { loadSettings, saveSettings } from "@/lib/settingsStore";
+import { Feather, MaterialIcons } from "@expo/vector-icons";
+import { router } from "expo-router";
+import { useColorScheme } from "nativewind";
+import { useCallback, useRef, useState } from "react";
+import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 interface SettingRowProps {
+  icon: React.ReactNode;
   label: string;
   description: string;
   isDark: boolean;
@@ -16,6 +18,7 @@ interface SettingRowProps {
 }
 
 const SettingRow = ({
+  icon,
   label,
   description,
   isDark,
@@ -31,17 +34,14 @@ const SettingRow = ({
         isDark ? "border-dark-400" : "border-white-300"
       } border-b`}
     >
-      <View className="flex-1 mr-4">
-        <Text className={`text-sm font-medium ${textColor}`}>{label}</Text>
-        <Text className={`text-xs mt-0.5 ${descColor}`}>{description}</Text>
+      <View className="flex-row items-center flex-1 mr-4">
+        <View className="mr-3">{icon}</View>
+        <View className="flex-1">
+          <Text className={`text-sm font-medium ${textColor}`}>{label}</Text>
+          <Text className={`text-xs mt-0.5 ${descColor}`}>{description}</Text>
+        </View>
       </View>
-      <Switch
-        value={enabled}
-        onValueChange={onToggle}
-        trackColor={{ false: isDark ? "#3F3F46" : "#D1D5DB", true: "#3B82F6" }}
-        thumbColor="#FFFFFF"
-        ios_backgroundColor={isDark ? "#3F3F46" : "#D1D5DB"}
-      />
+      <AnimatedToggle enabled={enabled} onToggle={onToggle} isDark={isDark} />
     </View>
   );
 };
@@ -62,7 +62,7 @@ export default function SettingsScreen() {
         return next;
       });
     },
-    []
+    [],
   );
 
   const bg = isDark ? "bg-dark-500" : "bg-white-100";
@@ -84,11 +84,16 @@ export default function SettingsScreen() {
 
       <ScrollView className="flex-1 px-4 py-4">
         <View className={`rounded-lg border p-4 mb-4 ${cardBg} ${cardBorder}`}>
-          <Text className={`text-xs font-semibold uppercase mb-3 ${textSecondary}`}>
+          <Text
+            className={`text-xs font-semibold uppercase mb-3 ${textSecondary}`}
+          >
             Editor
           </Text>
 
           <SettingRow
+            icon={
+              <MaterialIcons name="highlight" size={22} color={iconColor} />
+            }
             label="Highlight current line"
             description="Shows a subtle background on the line where your cursor is"
             isDark={isDark}
@@ -97,24 +102,42 @@ export default function SettingsScreen() {
           />
 
           <SettingRow
+            icon={
+              <MaterialIcons
+                name="format-list-numbered"
+                size={22}
+                color={iconColor}
+              />
+            }
             label="Show line numbers"
             description="Displays line numbers in the left gutter"
             isDark={isDark}
             enabled={settings.showLineNumbers}
-            onToggle={() => update("showLineNumbers", !settings.showLineNumbers)}
+            onToggle={() =>
+              update("showLineNumbers", !settings.showLineNumbers)
+            }
           />
         </View>
 
         <View className={`rounded-lg border p-4 ${cardBg} ${cardBorder}`}>
-          <Text className={`text-xs font-semibold uppercase mb-3 ${textSecondary}`}>
+          <Text
+            className={`text-xs font-semibold uppercase mb-3 ${textSecondary}`}
+          >
             Default font size
           </Text>
           <Text className={`text-xs mb-4 ${textSecondary}`}>
             Used when opening a new session. Toolbar +/- adjusts per session.
           </Text>
 
-          <View className={`flex-row items-center justify-between py-2 ${isDark ? "border-dark-400" : "border-white-300"} border-b`}>
-            <Text className={`text-sm ${textPrimary}`}>Font size</Text>
+          <View
+            className={`flex-row items-center justify-between py-2 ${isDark ? "border-dark-400" : "border-white-300"} border-b`}
+          >
+            <View className="flex-row items-center">
+              <View className="mr-3">
+                <MaterialIcons name="format-size" size={22} color={iconColor} />
+              </View>
+              <Text className={`text-sm ${textPrimary}`}>Font size</Text>
+            </View>
             <View className="flex-row items-center gap-2">
               <TouchableOpacity
                 onPress={() => {
@@ -125,7 +148,9 @@ export default function SettingsScreen() {
               >
                 <Feather name="minus" size={20} color={iconColor} />
               </TouchableOpacity>
-              <Text className={`text-sm font-bold w-12 text-center ${textPrimary}`}>
+              <Text
+                className={`text-sm font-bold w-12 text-center ${textPrimary}`}
+              >
                 {settings.fontSize}pts
               </Text>
               <TouchableOpacity
