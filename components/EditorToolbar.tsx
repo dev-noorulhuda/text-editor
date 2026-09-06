@@ -47,7 +47,7 @@ export const EditorToolbar = ({
   onSettings,
 }: EditorToolbarProps) => {
   return (
-    <View className="flex-row items-center shrink min-w-0 justify-end">
+    <View className="flex-1 flex-row items-center justify-end">
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}

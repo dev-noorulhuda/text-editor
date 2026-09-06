@@ -105,7 +105,7 @@ export default function EditorScreen() {
           isDark ? "bg-dark-600" : "bg-white-200"
         }`}
       >
-        <View className="flex-1 mr-2 min-w-0 justify-center">
+        <View className="shrink-0 max-w-[42%] mr-2 justify-center">
           <Text
             numberOfLines={1}
             ellipsizeMode="middle"
@@ -113,7 +113,7 @@ export default function EditorScreen() {
               isDark ? "text-dark-100" : "text-white-900"
             }`}
           >
-            {activeFile?.name ?? "Untitled"}
+            {activeFile?.name || "Untitled"}
           </Text>
         </View>
 
