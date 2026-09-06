@@ -1,15 +1,15 @@
-import { useEffect, useState, useCallback, useRef } from "react";
-import { useFocusEffect } from "expo-router";
 import { openFile, saveFile, saveFileAs } from "@/lib/fileHelpers";
 import { loadSettings, saveSettings } from "@/lib/settingsStore";
 import {
+  deleteFileContent,
   generateId,
   loadInitialFiles,
   persistTabs,
   saveFileContent,
-  deleteFileContent,
 } from "@/lib/tabStore";
 import type { FileData } from "@/types/editorTypes";
+import { useFocusEffect } from "expo-router";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 const MAX_HISTORY = 100;
 
@@ -22,12 +22,25 @@ export const useEditor = () => {
 
   const [canUndo, setCanUndo] = useState(false);
   const [canRedo, setCanRedo] = useState(false);
-  const [isEditable, setIsEditable] = useState(savedSettings.current.isEditable);
+  const [isEditable, setIsEditable] = useState(
+    savedSettings.current.isEditable,
+  );
   const [fontSize, setFontSize] = useState(savedSettings.current.fontSize);
-  const [colorScheme, setColorScheme] = useState<"light" | "dark">(savedSettings.current.colorScheme);
-  const [highlightLine, setHighlightLine] = useState(savedSettings.current.highlightLine);
-  const [showLineNumbers, setShowLineNumbers] = useState(savedSettings.current.showLineNumbers);
-  const [edgeSpacing, setEdgeSpacing] = useState(savedSettings.current.edgeSpacing);
+  const [colorScheme, setColorScheme] = useState<"light" | "dark">(
+    savedSettings.current.colorScheme,
+  );
+  const [highlightLine, setHighlightLine] = useState(
+    savedSettings.current.highlightLine,
+  );
+  const [showLineNumbers, setShowLineNumbers] = useState(
+    savedSettings.current.showLineNumbers,
+  );
+  const [edgeSpacing, setEdgeSpacing] = useState(
+    savedSettings.current.edgeSpacing,
+  );
+  const [openKeyboardAtStart, setOpenKeyboardAtStart] = useState(
+    savedSettings.current.openKeyboardAtStart,
+  );
 
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -62,8 +75,24 @@ export const useEditor = () => {
   }, []);
 
   useEffect(() => {
-    saveSettings({ colorScheme, isEditable, fontSize, highlightLine, showLineNumbers, edgeSpacing });
-  }, [colorScheme, isEditable, fontSize, highlightLine, showLineNumbers, edgeSpacing]);
+    saveSettings({
+      colorScheme,
+      isEditable,
+      fontSize,
+      highlightLine,
+      showLineNumbers,
+      edgeSpacing,
+      openKeyboardAtStart,
+    });
+  }, [
+    colorScheme,
+    isEditable,
+    fontSize,
+    highlightLine,
+    showLineNumbers,
+    edgeSpacing,
+    openKeyboardAtStart,
+  ]);
 
   useFocusEffect(
     useCallback(() => {
@@ -72,20 +101,16 @@ export const useEditor = () => {
       setShowLineNumbers(fresh.showLineNumbers);
       setFontSize(fresh.fontSize);
       setEdgeSpacing(fresh.edgeSpacing);
-    }, [])
+      setOpenKeyboardAtStart(fresh.openKeyboardAtStart);
+    }, []),
   );
 
-  const updateFile = useCallback(
-    (id: string, updates: Partial<FileData>) => {
-      setFiles((prev) => {
-        const updated = prev.map((f) =>
-          f.id === id ? { ...f, ...updates } : f
-        );
-        return updated;
-      });
-    },
-    []
-  );
+  const updateFile = useCallback((id: string, updates: Partial<FileData>) => {
+    setFiles((prev) => {
+      const updated = prev.map((f) => (f.id === id ? { ...f, ...updates } : f));
+      return updated;
+    });
+  }, []);
 
   const handleContentChange = useCallback(
     (text: string) => {
@@ -113,7 +138,7 @@ export const useEditor = () => {
         saveFileContent(fileId, text);
       }, 400);
     },
-    [activeFile, updateFile]
+    [activeFile, updateFile],
   );
 
   const handleNew = useCallback(() => {
@@ -210,7 +235,7 @@ export const useEditor = () => {
         return updated;
       });
     },
-    [activeFileId]
+    [activeFileId],
   );
 
   const handleUndo = useCallback(() => {
@@ -273,6 +298,7 @@ export const useEditor = () => {
     highlightLine,
     showLineNumbers,
     edgeSpacing,
+    openKeyboardAtStart,
     handleContentChange,
     handleNew,
     handleOpen,
@@ -283,12 +309,33 @@ export const useEditor = () => {
     handleClose,
     setActiveFileId,
     toggleEditable: useCallback(() => setIsEditable((prev) => !prev), []),
-    increaseFontSize: useCallback(() => setFontSize((prev) => Math.min(prev + 2, 40)), []),
-    decreaseFontSize: useCallback(() => setFontSize((prev) => Math.max(prev - 2, 10)), []),
-    toggleColorScheme: useCallback(() => setColorScheme((prev) => (prev === "dark" ? "light" : "dark")), []),
-    toggleHighlightLine: useCallback(() => setHighlightLine((prev) => !prev), []),
-    toggleShowLineNumbers: useCallback(() => setShowLineNumbers((prev) => !prev), []),
-    increaseEdgeSpacing: useCallback(() => setEdgeSpacing((prev) => Math.min(prev + 2, 40)), []),
-    decreaseEdgeSpacing: useCallback(() => setEdgeSpacing((prev) => Math.max(prev - 2, 0)), []),
+    increaseFontSize: useCallback(
+      () => setFontSize((prev) => Math.min(prev + 2, 40)),
+      [],
+    ),
+    decreaseFontSize: useCallback(
+      () => setFontSize((prev) => Math.max(prev - 2, 10)),
+      [],
+    ),
+    toggleColorScheme: useCallback(
+      () => setColorScheme((prev) => (prev === "dark" ? "light" : "dark")),
+      [],
+    ),
+    toggleHighlightLine: useCallback(
+      () => setHighlightLine((prev) => !prev),
+      [],
+    ),
+    toggleShowLineNumbers: useCallback(
+      () => setShowLineNumbers((prev) => !prev),
+      [],
+    ),
+    increaseEdgeSpacing: useCallback(
+      () => setEdgeSpacing((prev) => Math.min(prev + 2, 40)),
+      [],
+    ),
+    decreaseEdgeSpacing: useCallback(
+      () => setEdgeSpacing((prev) => Math.max(prev - 2, 0)),
+      [],
+    ),
   };
 };

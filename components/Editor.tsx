@@ -8,6 +8,7 @@ import type {
 import { Text, TextInput, View } from "react-native";
 
 const LINE_HEIGHT_RATIO = 1.5;
+const BASE_EDGE_SPACING = 14;
 
 export const Editor = ({
   content,
@@ -18,6 +19,7 @@ export const Editor = ({
   highlightLine,
   showLineNumbers,
   currentLine,
+  autoFocus,
   onChangeText,
   onSelectionChange,
 }: EditorProps) => {
@@ -36,6 +38,14 @@ export const Editor = ({
   useEffect(() => {
     textRef.current = content;
   }, [content]);
+
+  useEffect(() => {
+    if (!autoFocus || !editable) return;
+    const timer = setTimeout(() => {
+      inputRef.current?.focus();
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [autoFocus, editable]);
 
   const lines = useMemo(() => {
     const split = content.split("\n");
@@ -100,8 +110,6 @@ export const Editor = ({
     ? "rgba(255,255,255,0.07)"
     : "rgba(0,0,0,0.04)";
 
-  const gutterBg = isDark ? colors.dark[600] : colors.white[200];
-  const gutterActiveColor = isDark ? colors.dark[100] : colors.white[900];
   const gutterColor = isDark ? colors.dark[300] : colors.white[500];
 
   return (
@@ -110,7 +118,7 @@ export const Editor = ({
         <View
           style={{
             width: gutterWidth,
-            backgroundColor: gutterBg,
+            backgroundColor: "transparent",
             paddingTop: 12,
             paddingBottom: 12,
             paddingLeft: 8,
@@ -119,24 +127,21 @@ export const Editor = ({
             alignItems: "flex-end",
           }}
         >
-          {lines.map((_, i) => {
-            const isActive = i + 1 === activeLine;
-            return (
-              <Text
-                key={i}
-                style={{
-                  fontSize: fontSize - 2,
-                  lineHeight,
-                  color: isActive ? gutterActiveColor : gutterColor,
-                  fontWeight: isActive ? "700" : "400",
-                  textAlign: "right",
-                  width: "100%",
-                }}
-              >
-                {i + 1}
-              </Text>
-            );
-          })}
+          {lines.map((_, i) => (
+            <Text
+              key={i}
+              style={{
+                fontSize: fontSize - 2,
+                lineHeight,
+                color: gutterColor,
+                fontWeight: "400",
+                textAlign: "right",
+                width: "100%",
+              }}
+            >
+              {i + 1}
+            </Text>
+          ))}
         </View>
       )}
 
@@ -160,8 +165,10 @@ export const Editor = ({
           style={{
             fontSize,
             lineHeight,
-            paddingLeft: showLineNumbers ? 8 : (edgeSpacing ?? 16),
-            paddingRight: edgeSpacing ?? 16,
+            paddingLeft: showLineNumbers
+              ? 8
+              : BASE_EDGE_SPACING + (edgeSpacing ?? 0),
+            paddingRight: BASE_EDGE_SPACING + (edgeSpacing ?? 0),
             paddingTop: 12,
             paddingBottom: 12,
             backgroundColor: "transparent",

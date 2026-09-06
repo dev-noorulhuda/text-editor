@@ -141,14 +141,12 @@ export default function SettingsScreen() {
             </View>
             <View className="flex-row items-center gap-1.5">
               <Text className={`text-sm font-bold ${textPrimary}`}>
-                {settings.edgeSpacing}px
+                {settings.edgeSpacing}dps
               </Text>
               <Feather name="chevron-right" size={18} color={iconColor} />
             </View>
           </TouchableOpacity>
-          <View
-            className="flex-row items-center justify-between py-3"
-          >
+          <View className="flex-row items-center justify-between py-3">
             <View className="flex-row items-center flex-1 mr-4">
               <View className="mr-3">
                 <MaterialIcons name="format-size" size={22} color={iconColor} />
@@ -188,6 +186,25 @@ export default function SettingsScreen() {
               </TouchableOpacity>
             </View>
           </View>
+        </View>
+
+        <View className={`rounded-lg border p-4 ${cardBg} ${cardBorder}`}>
+          <Text
+            className={`text-xs font-semibold uppercase mb-3 ${textSecondary}`}
+          >
+            App Settings
+          </Text>
+
+          <SettingRow
+            icon={<MaterialIcons name="keyboard" size={22} color={iconColor} />}
+            label="Open keyboard at start"
+            description="Automatically focus editor and show keyboard on launch"
+            isDark={isDark}
+            enabled={settings.openKeyboardAtStart}
+            onToggle={() =>
+              update("openKeyboardAtStart", !settings.openKeyboardAtStart)
+            }
+          />
         </View>
       </ScrollView>
 

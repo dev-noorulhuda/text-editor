@@ -9,6 +9,7 @@ export interface AppSettings {
   highlightLine: boolean;
   showLineNumbers: boolean;
   edgeSpacing: number;
+  openKeyboardAtStart: boolean;
 }
 
 const DEFAULTS: AppSettings = {
@@ -17,7 +18,8 @@ const DEFAULTS: AppSettings = {
   fontSize: 16,
   highlightLine: true,
   showLineNumbers: false,
-  edgeSpacing: 16,
+  edgeSpacing: 2,
+  openKeyboardAtStart: false,
 };
 
 export const loadSettings = (): AppSettings => {
@@ -33,10 +35,12 @@ export const loadSettings = (): AppSettings => {
   return { ...DEFAULTS };
 };
 
-export const saveSettings = (settings: AppSettings): void => {
+export const saveSettings = (settings: Partial<AppSettings>): void => {
   try {
+    const current = loadSettings();
+    const merged = { ...current, ...settings };
     const file = new File(Paths.document, SETTINGS_FILE);
-    file.write(JSON.stringify(settings));
+    file.write(JSON.stringify(merged));
   } catch {
     // ignore
   }

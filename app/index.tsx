@@ -8,7 +8,7 @@ import { Feather, MaterialIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
 import { useCallback, useState } from "react";
-import { TouchableOpacity, View, Text } from "react-native";
+import { Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function EditorScreen() {
@@ -26,6 +26,7 @@ export default function EditorScreen() {
     highlightLine,
     showLineNumbers,
     edgeSpacing,
+    openKeyboardAtStart,
     handleContentChange,
     handleNew,
     handleOpen,
@@ -90,7 +91,9 @@ export default function EditorScreen() {
             <Feather name="minus" size={20} color={iconColor} />
           </TouchableOpacity>
 
-          <Text className={`text-xs ${isDark ? "text-dark-200" : "text-white-600"}`}>
+          <Text
+            className={`text-xs ${isDark ? "text-dark-200" : "text-white-600"}`}
+          >
             {fontSize}pts
           </Text>
 
@@ -103,11 +106,7 @@ export default function EditorScreen() {
             disabled={!canUndo}
             className={`p-2 ${!canUndo ? "opacity-30" : ""}`}
           >
-            <Feather
-              name="corner-up-left"
-              size={20}
-              color={iconColor}
-            />
+            <Feather name="corner-up-left" size={20} color={iconColor} />
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -115,11 +114,7 @@ export default function EditorScreen() {
             disabled={!canRedo}
             className={`p-2 ${!canRedo ? "opacity-30" : ""}`}
           >
-            <Feather
-              name="corner-up-right"
-              size={20}
-              color={iconColor}
-            />
+            <Feather name="corner-up-right" size={20} color={iconColor} />
           </TouchableOpacity>
 
           <TouchableOpacity onPress={handleToggleColorScheme} className="p-2">
@@ -162,6 +157,7 @@ export default function EditorScreen() {
         highlightLine={highlightLine}
         showLineNumbers={showLineNumbers}
         currentLine={currentLine}
+        autoFocus={openKeyboardAtStart}
         onChangeText={handleContentChange}
         onSelectionChange={handleSelectionChange}
       />

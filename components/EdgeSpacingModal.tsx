@@ -1,6 +1,12 @@
 import { useCallback, useRef, useState } from "react";
-import { Modal, Pressable, Text, TouchableOpacity, View } from "react-native";
-import type { GestureResponderEvent, LayoutChangeEvent } from "react-native";
+import {
+  Modal,
+  Pressable,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import type { GestureResponderEvent } from "react-native";
 import { Feather, MaterialIcons } from "@expo/vector-icons";
 import { colors } from "@/lib/colors";
 
@@ -13,9 +19,9 @@ interface EdgeSpacingModalProps {
 }
 
 const MIN = 0;
-const MAX = 48;
+const MAX = 28;
 const STEP = 2;
-const DEFAULT_VALUE = 16;
+const DEFAULT_VALUE = 2;
 
 export const EdgeSpacingModal = ({
   visible,
@@ -27,8 +33,6 @@ export const EdgeSpacingModal = ({
   const [prevVisible, setPrevVisible] = useState(visible);
   const [prevPropValue, setPrevPropValue] = useState(value);
   const [currentValue, setCurrentValue] = useState(value);
-  const trackRef = useRef<View>(null);
-  const [trackWidth, setTrackWidth] = useState(240);
 
   if (visible !== prevVisible || value !== prevPropValue) {
     setPrevVisible(visible);
@@ -36,21 +40,46 @@ export const EdgeSpacingModal = ({
     setCurrentValue(value);
   }
 
-  const handleLayout = useCallback((e: LayoutChangeEvent) => {
-    const width = e.nativeEvent.layout.width;
-    if (width > 0) setTrackWidth(width);
+  const trackRef = useRef<View>(null);
+  const trackPageXRef = useRef(0);
+  const trackWidthRef = useRef(240);
+
+  const handleTouch = useCallback((e: GestureResponderEvent) => {
+    const width = trackWidthRef.current;
+    if (width <= 0) return;
+    const relativeX = e.nativeEvent.pageX - trackPageXRef.current;
+    const ratio = Math.max(0, Math.min(1, relativeX / width));
+    const raw = MIN + ratio * (MAX - MIN);
+    const stepped = Math.round(raw / STEP) * STEP;
+    setCurrentValue(Math.max(MIN, Math.min(MAX, stepped)));
   }, []);
 
-  const updateFromPosition = useCallback(
+  const handleGrant = useCallback(
     (e: GestureResponderEvent) => {
-      const locationX = e.nativeEvent.locationX;
-      const ratio = Math.max(0, Math.min(1, locationX / trackWidth));
-      const raw = MIN + ratio * (MAX - MIN);
-      const stepped = Math.round(raw / STEP) * STEP;
-      setCurrentValue(Math.max(MIN, Math.min(MAX, stepped)));
+      const pageX = e.nativeEvent.pageX;
+      trackRef.current?.measureInWindow((x, _y, width) => {
+        if (width > 0) {
+          trackPageXRef.current = x;
+          trackWidthRef.current = width;
+          const relativeX = pageX - x;
+          const ratio = Math.max(0, Math.min(1, relativeX / width));
+          const raw = MIN + ratio * (MAX - MIN);
+          const stepped = Math.round(raw / STEP) * STEP;
+          setCurrentValue(Math.max(MIN, Math.min(MAX, stepped)));
+        }
+      });
     },
-    [trackWidth]
+    [],
   );
+
+  const handleLayout = useCallback(() => {
+    trackRef.current?.measureInWindow((x, _y, width) => {
+      if (width > 0) {
+        trackPageXRef.current = x;
+        trackWidthRef.current = width;
+      }
+    });
+  }, []);
 
   const handleDefault = useCallback(() => {
     setCurrentValue(DEFAULT_VALUE);
@@ -94,7 +123,9 @@ export const EdgeSpacingModal = ({
           className={`w-full max-w-sm rounded-2xl border p-5 shadow-2xl ${modalBg} ${cardBorder}`}
         >
           {/* Header */}
-          <View className={`flex-row items-center justify-between pb-3 border-b ${cardBorder}`}>
+          <View
+            className={`flex-row items-center justify-between pb-3 border-b ${cardBorder}`}
+          >
             <View className="flex-row items-center gap-2">
               <MaterialIcons name="space-bar" size={22} color={iconColor} />
               <Text className={`text-base font-bold ${textPrimary}`}>
@@ -107,21 +138,27 @@ export const EdgeSpacingModal = ({
           </View>
 
           <Text className={`text-xs mt-3 ${textSecondary}`}>
-            Adjust the spacing from the left screen corner for the editor canvas.
+            Adjust the spacing from the left screen corner for the editor
+            canvas.
           </Text>
 
           {/* Value Display */}
           <View className="items-center my-5">
             <Text className={`text-3xl font-extrabold ${textPrimary}`}>
               {currentValue}
-              <Text className={`text-base font-normal ${textSecondary}`}> px</Text>
+              <Text className={`text-base font-normal ${textSecondary}`}>
+                {" "}
+                dps
+              </Text>
             </Text>
           </View>
 
           {/* Slider with +/- buttons */}
           <View className="flex-row items-center gap-3">
             <TouchableOpacity
-              onPress={() => setCurrentValue((prev) => Math.max(MIN, prev - STEP))}
+              onPress={() =>
+                setCurrentValue((prev) => Math.max(MIN, prev - STEP))
+              }
               className={`p-2 rounded-full border ${cardBorder}`}
             >
               <Feather name="minus" size={16} color={iconColor} />
@@ -132,11 +169,14 @@ export const EdgeSpacingModal = ({
               onLayout={handleLayout}
               onStartShouldSetResponder={() => true}
               onMoveShouldSetResponder={() => true}
-              onResponderGrant={updateFromPosition}
-              onResponderMove={updateFromPosition}
+              onResponderGrant={handleGrant}
+              onResponderMove={handleTouch}
               className="flex-1 h-7 justify-center"
             >
-              <View className={`h-2.5 rounded-full overflow-hidden ${inactiveTrackClass}`}>
+              <View
+                pointerEvents="none"
+                className={`h-2.5 rounded-full overflow-hidden ${inactiveTrackClass}`}
+              >
                 <View
                   style={{ width: `${fillPercent}%` }}
                   className={`h-full rounded-full ${activeTrackClass}`}
@@ -144,6 +184,7 @@ export const EdgeSpacingModal = ({
               </View>
               {/* Thumb */}
               <View
+                pointerEvents="none"
                 style={{
                   position: "absolute",
                   left: `${fillPercent}%`,
@@ -154,7 +195,9 @@ export const EdgeSpacingModal = ({
             </View>
 
             <TouchableOpacity
-              onPress={() => setCurrentValue((prev) => Math.min(MAX, prev + STEP))}
+              onPress={() =>
+                setCurrentValue((prev) => Math.min(MAX, prev + STEP))
+              }
               className={`p-2 rounded-full border ${cardBorder}`}
             >
               <Feather name="plus" size={16} color={iconColor} />
@@ -162,7 +205,9 @@ export const EdgeSpacingModal = ({
           </View>
 
           {/* 3 Action Buttons at the end with NO background color */}
-          <View className={`flex-row items-center justify-between mt-6 pt-3 border-t ${cardBorder}`}>
+          <View
+            className={`flex-row items-center justify-between mt-6 pt-3 border-t ${cardBorder}`}
+          >
             <TouchableOpacity onPress={handleDefault} className="py-2 px-3">
               <Text className={`text-sm font-medium ${textSecondary}`}>
                 Default
@@ -177,9 +222,7 @@ export const EdgeSpacingModal = ({
               </TouchableOpacity>
 
               <TouchableOpacity onPress={handleOk} className="py-2 px-3">
-                <Text className={`text-sm font-bold ${textPrimary}`}>
-                  OK
-                </Text>
+                <Text className={`text-sm font-bold ${textPrimary}`}>OK</Text>
               </TouchableOpacity>
             </View>
           </View>

@@ -42,6 +42,7 @@ export interface EditorProps {
   highlightLine: boolean;
   showLineNumbers: boolean;
   currentLine: number;
+  autoFocus?: boolean;
   onChangeText: (text: string) => void;
   onSelectionChange: (line: number) => void;
 }
