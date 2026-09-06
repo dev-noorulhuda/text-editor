@@ -14,7 +14,7 @@ import { Clipboard, Keyboard, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function EditorScreen() {
-  const { colorScheme, toggleColorScheme: toggleNativewind } = useColorScheme();
+  const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
 
   const {
@@ -47,7 +47,6 @@ export default function EditorScreen() {
     toggleEditable,
     increaseFontSize,
     decreaseFontSize,
-    toggleColorScheme: togglePersisted,
   } = useEditor();
 
   const [prevActiveFileId, setPrevActiveFileId] = useState(activeFileId);
@@ -62,11 +61,6 @@ export default function EditorScreen() {
   const handleSelectionChange = useCallback((line: number) => {
     setCurrentLine(line);
   }, []);
-
-  const handleToggleColorScheme = () => {
-    toggleNativewind();
-    togglePersisted();
-  };
 
   const handleToggleEditable = useCallback(() => {
     if (isEditable) {
@@ -110,7 +104,7 @@ export default function EditorScreen() {
           isDark ? "bg-dark-600" : "bg-white-200"
         }`}
       >
-        <View className="flex-row items-center gap-2">
+        <View className="flex-row items-center gap-2 mr-2 shrink-0">
           <Text
             className={`text-lg font-bold ${
               isDark ? "text-dark-100" : "text-white-900"
@@ -149,7 +143,6 @@ export default function EditorScreen() {
           onIncreaseFontSize={increaseFontSize}
           onUndo={handleUndo}
           onRedo={handleRedo}
-          onToggleColorScheme={handleToggleColorScheme}
           onNew={handleNew}
           onOpen={handleOpen}
           onSave={handleSave}

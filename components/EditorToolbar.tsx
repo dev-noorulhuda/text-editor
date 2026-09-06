@@ -1,7 +1,7 @@
 import { OverflowMenu } from "@/components/OverflowMenu";
 import { buzz } from "@/lib/haptics";
 import { Feather, MaterialIcons } from "@expo/vector-icons";
-import { Text, TouchableOpacity, View } from "react-native";
+import { ScrollView, Text, TouchableOpacity } from "react-native";
 
 export interface EditorToolbarProps {
   isDark: boolean;
@@ -17,7 +17,6 @@ export interface EditorToolbarProps {
   onIncreaseFontSize: () => void;
   onUndo: () => void;
   onRedo: () => void;
-  onToggleColorScheme: () => void;
   onNew: () => void;
   onOpen: () => void;
   onSave: () => void;
@@ -39,7 +38,6 @@ export const EditorToolbar = ({
   onIncreaseFontSize,
   onUndo,
   onRedo,
-  onToggleColorScheme,
   onNew,
   onOpen,
   onSave,
@@ -47,7 +45,12 @@ export const EditorToolbar = ({
   onSettings,
 }: EditorToolbarProps) => {
   return (
-    <View className="flex-row items-center gap-1">
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      className="shrink"
+      contentContainerClassName="flex-row items-center gap-0.5"
+    >
       <TouchableOpacity
         onPress={() => {
           buzz();
@@ -82,7 +85,9 @@ export const EditorToolbar = ({
         <Feather name="minus" size={20} color={iconColor} />
       </TouchableOpacity>
 
-      <Text className={`text-xs ${isDark ? "text-dark-200" : "text-white-600"}`}>
+      <Text
+        className={`text-xs ${isDark ? "text-dark-200" : "text-white-600"}`}
+      >
         {fontSize}pts
       </Text>
 
@@ -118,20 +123,6 @@ export const EditorToolbar = ({
         <Feather name="corner-up-right" size={20} color={iconColor} />
       </TouchableOpacity>
 
-      <TouchableOpacity
-        onPress={() => {
-          buzz();
-          onToggleColorScheme();
-        }}
-        className="p-2"
-      >
-        <MaterialIcons
-          name={isDark ? "light-mode" : "dark-mode"}
-          size={20}
-          color={iconColor}
-        />
-      </TouchableOpacity>
-
       <OverflowMenu
         isDark={isDark}
         onNew={() => {
@@ -155,6 +146,6 @@ export const EditorToolbar = ({
           onSettings();
         }}
       />
-    </View>
+    </ScrollView>
   );
 };

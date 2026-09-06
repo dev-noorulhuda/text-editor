@@ -1,5 +1,4 @@
 import type { FileResult } from "@/types/editorTypes";
-import { getMimeTypeForFileName } from "@/lib/languageRegistry";
 import { pick, saveDocuments, types } from "@react-native-documents/picker";
 import { File, Paths } from "expo-file-system";
 import { readAsStringAsync, writeAsStringAsync } from "expo-file-system/legacy";
@@ -100,10 +99,9 @@ export const saveFileAs = async (
     const tempFile = new File(Paths.cache, safeName);
     tempFile.write(normalized);
 
-    const mimeType = getMimeTypeForFileName(safeName);
     const results = await saveDocuments({
       sourceUris: [tempFile.uri],
-      mimeType,
+      mimeType: "*/*",
       fileName: safeName,
     });
 
