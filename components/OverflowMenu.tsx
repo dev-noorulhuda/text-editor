@@ -11,6 +11,7 @@ import {
   Feather,
 } from "@expo/vector-icons";
 import { colors } from "@/lib/colors";
+import { buzz } from "@/lib/haptics";
 
 interface OverflowMenuProps {
   isDark: boolean;
@@ -35,7 +36,7 @@ export const OverflowMenu = ({
   const menuBg = isDark ? "bg-dark-600" : "bg-white-50";
   const menuBorder = isDark ? "border-dark-400" : "border-white-300";
   const textColor = isDark ? "text-dark-100" : "text-white-800";
-  const hoverBg = isDark ? "bg-dark-500" : "bg-white-100";
+  const hoverBg = isDark ? "active:bg-dark-500" : "active:bg-white-200";
 
   const items = [
     { label: "New", icon: <MaterialIcons name="note-add" size={18} color={iconColor} />, action: onNew },
@@ -48,7 +49,10 @@ export const OverflowMenu = ({
   return (
     <View>
       <TouchableOpacity
-        onPress={() => setVisible(true)}
+        onPress={() => {
+          buzz();
+          setVisible(true);
+        }}
         className="p-2"
       >
         <Feather name="more-vertical" size={20} color={iconColor} />
@@ -71,6 +75,7 @@ export const OverflowMenu = ({
               <TouchableOpacity
                 key={item.label}
                 onPress={() => {
+                  buzz();
                   item.action();
                   setVisible(false);
                 }}

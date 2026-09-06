@@ -1,4 +1,5 @@
 import { colors } from "@/lib/colors";
+import { buzz } from "@/lib/haptics";
 import { Feather, MaterialIcons } from "@expo/vector-icons";
 import { Text, TouchableOpacity, View } from "react-native";
 
@@ -41,7 +42,10 @@ export const FontSizeRow = ({
       </View>
       <View className="flex-row items-center gap-2">
         <TouchableOpacity
-          onPress={() => onChange(Math.max(fontSize - 2, 10))}
+          onPress={() => {
+            buzz();
+            onChange(Math.max(fontSize - 2, 10));
+          }}
           className={`p-1.5 rounded-full border ${cardBorder}`}
         >
           <Feather name="minus" size={16} color={iconColor} />
@@ -50,7 +54,10 @@ export const FontSizeRow = ({
           {fontSize}pts
         </Text>
         <TouchableOpacity
-          onPress={() => onChange(Math.min(fontSize + 2, 40))}
+          onPress={() => {
+            buzz();
+            onChange(Math.min(fontSize + 2, 40));
+          }}
           className={`p-1.5 rounded-full border ${cardBorder}`}
         >
           <Feather name="plus" size={16} color={iconColor} />

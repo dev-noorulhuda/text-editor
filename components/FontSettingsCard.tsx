@@ -1,5 +1,6 @@
 import { FontSizeRow } from "@/components/FontSizeRow";
 import { colors } from "@/lib/colors";
+import { buzz } from "@/lib/haptics";
 import { Feather, MaterialIcons } from "@expo/vector-icons";
 import { Text, TouchableOpacity, View } from "react-native";
 
@@ -41,7 +42,10 @@ export const FontSettingsCard = ({
       />
 
       <TouchableOpacity
-        onPress={onFontFamilyPress}
+        onPress={() => {
+          buzz();
+          onFontFamilyPress();
+        }}
         className="flex-row items-center justify-between py-3"
       >
         <View className="flex-row items-center flex-1 mr-4">

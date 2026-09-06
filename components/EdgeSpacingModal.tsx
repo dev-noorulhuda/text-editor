@@ -9,6 +9,7 @@ import {
 import type { GestureResponderEvent } from "react-native";
 import { Feather, MaterialIcons } from "@expo/vector-icons";
 import { colors } from "@/lib/colors";
+import { buzz } from "@/lib/haptics";
 
 interface EdgeSpacingModalProps {
   visible: boolean;
@@ -82,15 +83,18 @@ export const EdgeSpacingModal = ({
   }, []);
 
   const handleDefault = useCallback(() => {
+    buzz();
     setCurrentValue(DEFAULT_VALUE);
   }, []);
 
   const handleCancel = useCallback(() => {
+    buzz();
     setCurrentValue(value);
     onClose();
   }, [value, onClose]);
 
   const handleOk = useCallback(() => {
+    buzz();
     onConfirm(currentValue);
     onClose();
   }, [currentValue, onConfirm, onClose]);
@@ -156,9 +160,10 @@ export const EdgeSpacingModal = ({
           {/* Slider with +/- buttons */}
           <View className="flex-row items-center gap-3">
             <TouchableOpacity
-              onPress={() =>
-                setCurrentValue((prev) => Math.max(MIN, prev - STEP))
-              }
+              onPress={() => {
+                buzz();
+                setCurrentValue((prev) => Math.max(MIN, prev - STEP));
+              }}
               className={`p-2 rounded-full border ${cardBorder}`}
             >
               <Feather name="minus" size={16} color={iconColor} />
@@ -195,9 +200,10 @@ export const EdgeSpacingModal = ({
             </View>
 
             <TouchableOpacity
-              onPress={() =>
-                setCurrentValue((prev) => Math.min(MAX, prev + STEP))
-              }
+              onPress={() => {
+                buzz();
+                setCurrentValue((prev) => Math.min(MAX, prev + STEP));
+              }}
               className={`p-2 rounded-full border ${cardBorder}`}
             >
               <Feather name="plus" size={16} color={iconColor} />

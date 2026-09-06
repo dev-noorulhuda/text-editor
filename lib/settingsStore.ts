@@ -1,4 +1,5 @@
 import { File, Paths } from "expo-file-system";
+import { Appearance } from "react-native";
 
 const SETTINGS_FILE = "settings.json";
 
@@ -17,6 +18,10 @@ export interface AppSettings {
   clearSessionOnRestart: boolean;
 }
 
+export const getSystemColorScheme = (): "light" | "dark" => {
+  return Appearance.getColorScheme() === "dark" ? "dark" : "light";
+};
+
 const DEFAULTS: AppSettings = {
   colorScheme: "light",
   isEditable: true,
@@ -31,16 +36,21 @@ const DEFAULTS: AppSettings = {
 };
 
 export const loadSettings = (): AppSettings => {
+  const systemTheme = getSystemColorScheme();
+  const initialDefaults: AppSettings = {
+    ...DEFAULTS,
+    colorScheme: systemTheme,
+  };
   try {
     const file = new File(Paths.document, SETTINGS_FILE);
     if (file.exists) {
       const data = JSON.parse(file.textSync()) as Partial<AppSettings>;
-      return { ...DEFAULTS, ...data };
+      return { ...initialDefaults, ...data };
     }
   } catch {
     // ignore
   }
-  return { ...DEFAULTS };
+  return { ...initialDefaults };
 };
 
 export const saveSettings = (settings: Partial<AppSettings>): void => {

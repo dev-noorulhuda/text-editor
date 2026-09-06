@@ -11,6 +11,8 @@ import { useCallback, useRef, useState } from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { buzz } from "@/lib/haptics";
+
 export default function SettingsScreen() {
   const { colorScheme, setColorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
@@ -50,7 +52,13 @@ export default function SettingsScreen() {
     <SafeAreaView className={`flex-1 ${bg}`} edges={["top", "bottom"]}>
       {/* Header */}
       <View className={`flex-row items-center gap-3 px-4 py-3 ${headerBg}`}>
-        <TouchableOpacity onPress={() => router.back()} className="p-1">
+        <TouchableOpacity
+          onPress={() => {
+            buzz();
+            router.back();
+          }}
+          className="p-1"
+        >
           <Feather name="arrow-left" size={22} color={iconColor} />
         </TouchableOpacity>
         <Text className={`text-lg font-bold ${textPrimary}`}>Settings</Text>

@@ -7,6 +7,7 @@ import Animated, {
   interpolateColor,
   Easing,
 } from "react-native-reanimated";
+import { buzz } from "@/lib/haptics";
 import { colors } from "@/lib/colors";
 
 interface AnimatedToggleProps {
@@ -56,7 +57,10 @@ export const AnimatedToggle = ({
 
   return (
     <Pressable
-      onPress={onToggle}
+      onPress={() => {
+        buzz();
+        onToggle();
+      }}
       accessibilityRole="switch"
       accessibilityState={{ checked: enabled }}
       hitSlop={8}

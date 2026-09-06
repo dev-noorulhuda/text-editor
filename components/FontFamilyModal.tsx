@@ -1,5 +1,6 @@
 import { colors } from "@/lib/colors";
 import { resolveFontFamily } from "@/lib/fontHelpers";
+import { buzz } from "@/lib/haptics";
 import type { FontFamily } from "@/lib/settingsStore";
 import { Feather, MaterialIcons } from "@expo/vector-icons";
 import { useCallback, useState } from "react";
@@ -59,15 +60,18 @@ export const FontFamilyModal = ({
   }
 
   const handleDefault = useCallback(() => {
+    buzz();
     setSelectedFamily(DEFAULT_FAMILY);
   }, []);
 
   const handleCancel = useCallback(() => {
+    buzz();
     setSelectedFamily(value);
     onClose();
   }, [value, onClose]);
 
   const handleOk = useCallback(() => {
+    buzz();
     onConfirm(selectedFamily);
     onClose();
   }, [selectedFamily, onConfirm, onClose]);
@@ -119,7 +123,10 @@ export const FontFamilyModal = ({
               return (
                 <TouchableOpacity
                   key={opt.id}
-                  onPress={() => setSelectedFamily(opt.id)}
+                  onPress={() => {
+                    buzz();
+                    setSelectedFamily(opt.id);
+                  }}
                   className={`p-3 rounded-xl border flex-row items-center justify-between ${
                     isSelected
                       ? isDark

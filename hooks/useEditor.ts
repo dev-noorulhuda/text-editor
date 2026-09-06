@@ -1,5 +1,6 @@
 import { useEditorHistory } from "@/hooks/useEditorHistory";
 import { useEditorSettings } from "@/hooks/useEditorSettings";
+import { confirmCloseFile, getTabsAfterClose } from "@/lib/editorAlerts";
 import { openFile, saveFile, saveFileAs } from "@/lib/fileHelpers";
 import {
   deleteFileContent,
@@ -176,45 +177,47 @@ export const useEditor = () => {
     await handleSaveAs();
   }, [activeFile, handleSaveAs]);
 
-  const handleClose = useCallback(
+  const performClose = useCallback(
     (id: string) => {
+      deleteFileContent(id);
       setFiles((prev) => {
-        if (prev.length === 1) {
-          const newId = generateId();
-          const newFile: FileData = {
-            id: newId,
-            name: "Untitled",
-            content: "",
-            uri: null,
-            isModified: false,
-          };
-          deleteFileContent(id);
-          persistTabs([newFile]);
-          setActiveFileId(newId);
-          saveFileContent(newId, "");
-          return [newFile];
-        }
-
-        const closedIndex = prev.findIndex((f) => f.id === id);
-        const updated = prev.filter((f) => f.id !== id);
-        deleteFileContent(id);
+        const { updated, nextActiveId } = getTabsAfterClose(
+          prev,
+          id,
+          activeFileId,
+        );
         persistTabs(updated);
-
-        if (activeFileId === id) {
-          const nextIndex = Math.min(
-            closedIndex === -1 ? 0 : closedIndex,
-            updated.length - 1,
-          );
-          const nextActive = updated[Math.max(0, nextIndex)];
-          if (nextActive) {
-            setActiveFileId(nextActive.id);
+        if (nextActiveId) {
+          setActiveFileId(nextActiveId);
+          if (updated.length === 1 && updated[0]?.id === nextActiveId) {
+            saveFileContent(nextActiveId, "");
           }
         }
-
         return updated;
       });
     },
     [activeFileId, setActiveFileId],
+  );
+
+  const handleClose = useCallback(
+    (id: string) => {
+      const target = files.find((f) => f.id === id);
+      confirmCloseFile(
+        target,
+        () => performClose(id),
+        async () => {
+          if (!target) return;
+          if (target.uri) {
+            const res = await saveFile(target.content, target.uri);
+            if (res.success) performClose(id);
+          } else {
+            const res = await saveFileAs(target.content, target.name);
+            if (res.success) performClose(id);
+          }
+        },
+      );
+    },
+    [files, performClose],
   );
 
   return {

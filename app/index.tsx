@@ -1,16 +1,15 @@
 import { Editor } from "@/components/Editor";
-import { OverflowMenu } from "@/components/OverflowMenu";
+import { EditorToolbar } from "@/components/EditorToolbar";
 import { Tabs } from "@/components/Tabs";
 import { useEditor } from "@/hooks/useEditor";
 import { colors } from "@/lib/colors";
 import { detectLanguage } from "@/lib/languageRegistry";
 import type { TabFile } from "@/types/editorTypes";
-import { Feather, MaterialIcons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
 import { useCallback, useState } from "react";
-import { Clipboard, Keyboard, Text, TouchableOpacity, View } from "react-native";
+import { Clipboard, Keyboard, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function EditorScreen() {
@@ -131,70 +130,27 @@ export default function EditorScreen() {
           )}
         </View>
 
-        <View className="flex-row items-center gap-1">
-          <TouchableOpacity onPress={handleToggleEditable} className="p-2">
-            <MaterialIcons
-              name={isEditable ? "edit" : "edit-off"}
-              size={20}
-              color={iconColor}
-            />
-          </TouchableOpacity>
-
-          <TouchableOpacity onPress={handleCopyAll} className="p-2">
-            <Feather
-              name={copied ? "check" : "copy"}
-              size={18}
-              color={iconColor}
-            />
-          </TouchableOpacity>
-
-          <TouchableOpacity onPress={decreaseFontSize} className="p-2">
-            <Feather name="minus" size={20} color={iconColor} />
-          </TouchableOpacity>
-
-          <Text
-            className={`text-xs ${isDark ? "text-dark-200" : "text-white-600"}`}
-          >
-            {fontSize}pts
-          </Text>
-
-          <TouchableOpacity onPress={increaseFontSize} className="p-2">
-            <Feather name="plus" size={20} color={iconColor} />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            onPress={handleUndo}
-            disabled={!canUndo}
-            className={`p-2 ${!canUndo ? "opacity-30" : ""}`}
-          >
-            <Feather name="corner-up-left" size={20} color={iconColor} />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            onPress={handleRedo}
-            disabled={!canRedo}
-            className={`p-2 ${!canRedo ? "opacity-30" : ""}`}
-          >
-            <Feather name="corner-up-right" size={20} color={iconColor} />
-          </TouchableOpacity>
-
-          <TouchableOpacity onPress={handleToggleColorScheme} className="p-2">
-            <MaterialIcons
-              name={isDark ? "light-mode" : "dark-mode"}
-              size={20}
-              color={iconColor}
-            />
-          </TouchableOpacity>
-
-          <OverflowMenu
-            isDark={isDark}
-            onNew={handleNew}
-            onOpen={handleOpen}
-            onSave={handleSave}
-            onSaveAs={handleSaveAs}
-            onSettings={() => router.push("/settings")}
-          />
-        </View>
+        <EditorToolbar
+          isDark={isDark}
+          iconColor={iconColor}
+          isEditable={isEditable}
+          fontSize={fontSize}
+          canUndo={canUndo}
+          canRedo={canRedo}
+          copied={copied}
+          onToggleEditable={handleToggleEditable}
+          onCopyAll={handleCopyAll}
+          onDecreaseFontSize={decreaseFontSize}
+          onIncreaseFontSize={increaseFontSize}
+          onUndo={handleUndo}
+          onRedo={handleRedo}
+          onToggleColorScheme={handleToggleColorScheme}
+          onNew={handleNew}
+          onOpen={handleOpen}
+          onSave={handleSave}
+          onSaveAs={handleSaveAs}
+          onSettings={() => router.push("/settings")}
+        />
       </View>
 
       {/* The tab is wrapped by view is choice by the developer if we remove it it will break the ui so never do it no matter what */}
