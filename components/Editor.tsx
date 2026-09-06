@@ -1,5 +1,6 @@
 import { EditorGutter } from "@/components/EditorGutter";
 import { useEditorLayout } from "@/hooks/useEditorLayout";
+import { useEditorScroll } from "@/hooks/useEditorScroll";
 import { colors } from "@/lib/colors";
 import {
   CONTENT_PADDING_TOP,
@@ -28,10 +29,8 @@ export const Editor = ({
   const lineHeight = Math.round(fontSize * LINE_HEIGHT_RATIO);
   const inputRef = useRef<TextInput>(null);
   const [activeLine, setActiveLine] = useState(currentLine);
-  const [prevCurrentLine, setPrevCurrentLine] = useState(currentLine);
 
-  if (currentLine !== prevCurrentLine) {
-    setPrevCurrentLine(currentLine);
+  if (currentLine !== activeLine) {
     setActiveLine(currentLine);
   }
 
@@ -46,10 +45,10 @@ export const Editor = ({
     return () => clearTimeout(timer);
   }, [autoFocus, editable]);
 
-  const lines = useMemo(() => {
-    const split = normalizedContent.split("\n");
-    return split.length === 1 && split[0] === "" ? [""] : split;
-  }, [normalizedContent]);
+  const lines = useMemo(
+    () => normalizedContent.split("\n"),
+    [normalizedContent],
+  );
 
   const handleSelection = (line: number) => {
     setActiveLine(line);
@@ -72,20 +71,22 @@ export const Editor = ({
     onChangeText,
   });
 
+  const { scrollViewRef, keyboardHeight, handleScroll, handleLayout } =
+    useEditorScroll({
+      highlightTop,
+      currentLineHeight,
+    });
+
   const gutterWidth = useMemo(() => {
     const digitCount = Math.max(String(lines.length).length, 1);
     const charWidth = Math.max(Math.ceil((fontSize - 2) * 0.65), 7);
     return digitCount * charWidth + 14;
   }, [lines.length, fontSize]);
 
-  const maxLineLength = useMemo(() => {
-    let max = 0;
-    for (let i = 0; i < lines.length; i++) {
-      const len = lines[i]?.length ?? 0;
-      if (len > max) max = len;
-    }
-    return max;
-  }, [lines]);
+  const maxLineLength = useMemo(
+    () => lines.reduce((max, l) => Math.max(max, l.length), 0),
+    [lines],
+  );
 
   const estimatedWidth =
     maxLineLength * Math.max(Math.ceil(fontSize * 0.7), 10) + 60;
@@ -188,8 +189,15 @@ export const Editor = ({
 
   return (
     <ScrollView
-      className="flex-1"
-      contentContainerStyle={{ minHeight: "100%" }}
+      ref={scrollViewRef}
+      onScroll={handleScroll}
+      onLayout={handleLayout}
+      scrollEventThrottle={16}
+      style={{ flex: 1, marginBottom: keyboardHeight }}
+      contentContainerStyle={{
+        minHeight: "100%",
+        paddingBottom: 24,
+      }}
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator
     >
