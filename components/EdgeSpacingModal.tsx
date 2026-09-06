@@ -138,8 +138,8 @@ export const EdgeSpacingModal = ({
           </View>
 
           <Text className={`text-xs mt-3 ${textSecondary}`}>
-            Adjust the spacing from the left screen corner for the editor
-            canvas.
+            Adjust the horizontal spacing from both screen edges for the
+            editor canvas.
           </Text>
 
           {/* Value Display */}

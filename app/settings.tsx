@@ -142,7 +142,7 @@ export default function SettingsScreen() {
                   Edge spacing
                 </Text>
                 <Text className={`text-xs mt-0.5 ${textSecondary}`}>
-                  Spacing from the left screen corner
+                  Horizontal spacing from screen edges
                 </Text>
               </View>
             </View>
