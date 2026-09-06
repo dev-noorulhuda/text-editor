@@ -11,6 +11,7 @@ export interface AppSettings {
   fontFamily: FontFamily;
   highlightLine: boolean;
   showLineNumbers: boolean;
+  wordWrap: boolean;
   edgeSpacing: number;
   openKeyboardAtStart: boolean;
   clearSessionOnRestart: boolean;
@@ -23,6 +24,7 @@ const DEFAULTS: AppSettings = {
   fontFamily: "system",
   highlightLine: true,
   showLineNumbers: false,
+  wordWrap: false,
   edgeSpacing: 2,
   openKeyboardAtStart: false,
   clearSessionOnRestart: false,

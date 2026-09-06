@@ -2,10 +2,7 @@ import { colors } from "@/lib/colors";
 import { resolveFontFamily } from "@/lib/fontHelpers";
 import type { EditorProps } from "@/types/editorTypes";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type {
-  NativeSyntheticEvent,
-  TextInputSelectionChangeEventData,
-} from "react-native";
+import type { TextInputSelectionChangeEvent } from "react-native";
 import { ScrollView, Text, TextInput, View } from "react-native";
 
 const LINE_HEIGHT_RATIO = 1.5;
@@ -33,6 +30,7 @@ export const Editor = ({
   edgeSpacing,
   highlightLine,
   showLineNumbers,
+  wordWrap = false,
   currentLine,
   autoFocus,
   onChangeText,
@@ -84,9 +82,14 @@ export const Editor = ({
 
   const charWidth = Math.max(Math.ceil(fontSize * 0.7), 10);
   const estimatedWidth = maxLineLength * charWidth + 60;
+  const canvasWidth = wordWrap
+    ? "100%"
+    : estimatedWidth > 0
+      ? Math.max(estimatedWidth, 100)
+      : "100%";
 
   const handleSelectionChange = useCallback(
-    (e: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
+    (e: TextInputSelectionChangeEvent) => {
       const { start } = e.nativeEvent.selection;
       const line = getLineFromOffset(normalizedContent, start);
       setActiveLine(line);
@@ -176,6 +179,7 @@ export const Editor = ({
 
         <ScrollView
           horizontal
+          scrollEnabled={!wordWrap}
           showsHorizontalScrollIndicator={false}
           className="flex-1"
           keyboardShouldPersistTaps="handled"
@@ -183,7 +187,7 @@ export const Editor = ({
           <View
             style={{
               minWidth: "100%",
-              width: estimatedWidth > 0 ? Math.max(estimatedWidth, 100) : "100%",
+              width: canvasWidth,
               minHeight: totalHeight,
               position: "relative",
             }}
@@ -194,7 +198,10 @@ export const Editor = ({
                   position: "absolute",
                   left: 0,
                   right: 0,
-                  top: highlightTop + CONTENT_PADDING_TOP + HIGHLIGHT_VERTICAL_ADJUST,
+                  top:
+                    highlightTop +
+                    CONTENT_PADDING_TOP +
+                    HIGHLIGHT_VERTICAL_ADJUST,
                   height: lineHeight,
                   backgroundColor: lineHighlightBg,
                   pointerEvents: "none",
@@ -226,7 +233,9 @@ export const Editor = ({
               onChangeText={handleChangeText}
               onSelectionChange={handleSelectionChange}
               placeholder="Start typing..."
-              placeholderTextColor={isDark ? colors.dark[300] : colors.white[500]}
+              placeholderTextColor={
+                isDark ? colors.dark[300] : colors.white[500]
+              }
               textAlignVertical="top"
               autoCapitalize="none"
               autoCorrect={false}

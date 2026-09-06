@@ -1,6 +1,6 @@
 import { EdgeSpacingModal } from "@/components/EdgeSpacingModal";
 import { FontFamilyModal } from "@/components/FontFamilyModal";
-import { FontSizeRow } from "@/components/FontSizeRow";
+import { FontSettingsCard } from "@/components/FontSettingsCard";
 import { SettingRow } from "@/components/SettingRow";
 import { colors } from "@/lib/colors";
 import { loadSettings, saveSettings } from "@/lib/settingsStore";
@@ -10,10 +10,6 @@ import { useColorScheme } from "nativewind";
 import { useCallback, useRef, useState } from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-
-const formatFontFamily = (family: string) => {
-  return family.charAt(0).toUpperCase() + family.slice(1);
-};
 
 export default function SettingsScreen() {
   const { colorScheme, setColorScheme } = useColorScheme();
@@ -115,48 +111,13 @@ export default function SettingsScreen() {
         </View>
 
         {/* Section 2: Font Settings */}
-        <View className={`rounded-lg border p-4 mb-4 ${cardBg} ${cardBorder}`}>
-          <Text
-            className={`text-xs font-semibold uppercase mb-3 ${textSecondary}`}
-          >
-            Font Settings
-          </Text>
-
-          <FontSizeRow
-            fontSize={settings.fontSize}
-            isDark={isDark}
-            onChange={(size) => update("fontSize", size)}
-          />
-
-          <TouchableOpacity
-            onPress={() => setShowFontFamilyModal(true)}
-            className="flex-row items-center justify-between py-3"
-          >
-            <View className="flex-row items-center flex-1 mr-4">
-              <View className="mr-3">
-                <MaterialIcons
-                  name="font-download"
-                  size={22}
-                  color={iconColor}
-                />
-              </View>
-              <View className="flex-1">
-                <Text className={`text-sm font-medium ${textPrimary}`}>
-                  Font family
-                </Text>
-                <Text className={`text-xs mt-0.5 ${textSecondary}`}>
-                  Typeface used across the editor
-                </Text>
-              </View>
-            </View>
-            <View className="flex-row items-center gap-1.5">
-              <Text className={`text-sm font-bold ${textPrimary}`}>
-                {formatFontFamily(settings.fontFamily ?? "system")}
-              </Text>
-              <Feather name="chevron-right" size={18} color={iconColor} />
-            </View>
-          </TouchableOpacity>
-        </View>
+        <FontSettingsCard
+          fontSize={settings.fontSize}
+          fontFamily={settings.fontFamily ?? "system"}
+          isDark={isDark}
+          onFontSizeChange={(size) => update("fontSize", size)}
+          onFontFamilyPress={() => setShowFontFamilyModal(true)}
+        />
 
         {/* Section 3: Editor Settings */}
         <View className={`rounded-lg border p-4 ${cardBg} ${cardBorder}`}>
@@ -194,6 +155,17 @@ export default function SettingsScreen() {
           </TouchableOpacity>
 
           <SettingRow
+            icon={
+              <MaterialIcons name="wrap-text" size={22} color={iconColor} />
+            }
+            label="Word wrap"
+            description="Wrap long lines to fit within the screen width"
+            isDark={isDark}
+            enabled={settings.wordWrap}
+            onToggle={() => update("wordWrap", !settings.wordWrap)}
+          />
+
+          <SettingRow
             icon={<MaterialIcons name="keyboard" size={22} color={iconColor} />}
             label="Open keyboard at start"
             description="Automatically focus editor and show keyboard on launch"
@@ -206,11 +178,7 @@ export default function SettingsScreen() {
 
           <SettingRow
             icon={
-              <MaterialIcons
-                name="restart-alt"
-                size={22}
-                color={iconColor}
-              />
+              <MaterialIcons name="restart-alt" size={22} color={iconColor} />
             }
             label="Clear session on restart"
             description="Start with a fresh empty tab on launch instead of restoring text"

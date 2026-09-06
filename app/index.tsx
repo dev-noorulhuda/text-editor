@@ -26,6 +26,7 @@ export default function EditorScreen() {
     fontFamily,
     highlightLine,
     showLineNumbers,
+    wordWrap,
     edgeSpacing,
     openKeyboardAtStart,
     handleContentChange,
@@ -166,6 +167,7 @@ export default function EditorScreen() {
         edgeSpacing={edgeSpacing}
         highlightLine={highlightLine}
         showLineNumbers={showLineNumbers}
+        wordWrap={wordWrap}
         currentLine={currentLine}
         autoFocus={openKeyboardAtStart}
         onChangeText={handleContentChange}

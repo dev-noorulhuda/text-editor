@@ -42,6 +42,7 @@ export interface EditorProps {
   edgeSpacing: number;
   highlightLine: boolean;
   showLineNumbers: boolean;
+  wordWrap?: boolean;
   currentLine: number;
   autoFocus?: boolean;
   onChangeText: (text: string) => void;

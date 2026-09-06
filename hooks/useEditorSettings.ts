@@ -23,6 +23,7 @@ export const useEditorSettings = () => {
   const [showLineNumbers, setShowLineNumbers] = useState(
     saved.current.showLineNumbers,
   );
+  const [wordWrap, setWordWrap] = useState(saved.current.wordWrap ?? false);
   const [edgeSpacing, setEdgeSpacing] = useState(saved.current.edgeSpacing);
   const [openKeyboardAtStart, setOpenKeyboardAtStart] = useState(
     saved.current.openKeyboardAtStart,
@@ -39,6 +40,7 @@ export const useEditorSettings = () => {
       fontFamily,
       highlightLine,
       showLineNumbers,
+      wordWrap,
       edgeSpacing,
       openKeyboardAtStart,
       clearSessionOnRestart,
@@ -50,6 +52,7 @@ export const useEditorSettings = () => {
     fontFamily,
     highlightLine,
     showLineNumbers,
+    wordWrap,
     edgeSpacing,
     openKeyboardAtStart,
     clearSessionOnRestart,
@@ -60,6 +63,7 @@ export const useEditorSettings = () => {
       const fresh = loadSettings();
       setHighlightLine(fresh.highlightLine);
       setShowLineNumbers(fresh.showLineNumbers);
+      setWordWrap(fresh.wordWrap ?? false);
       setFontSize(fresh.fontSize);
       setFontFamily(fresh.fontFamily ?? "system");
       setEdgeSpacing(fresh.edgeSpacing);
@@ -75,6 +79,7 @@ export const useEditorSettings = () => {
     colorScheme,
     highlightLine,
     showLineNumbers,
+    wordWrap,
     edgeSpacing,
     openKeyboardAtStart,
     clearSessionOnRestart,
@@ -99,6 +104,7 @@ export const useEditorSettings = () => {
       () => setShowLineNumbers((prev) => !prev),
       [],
     ),
+    toggleWordWrap: useCallback(() => setWordWrap((prev) => !prev), []),
     increaseEdgeSpacing: useCallback(
       () => setEdgeSpacing((prev) => Math.min(prev + 2, 40)),
       [],
