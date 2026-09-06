@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
 import { Feather } from "@expo/vector-icons";
@@ -6,8 +6,6 @@ import { TouchableOpacity, View, Text, ScrollView, Switch } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { colors } from "@/lib/colors";
 import { loadSettings, saveSettings } from "@/lib/settingsStore";
-
-const FONT_SIZES = [10, 12, 14, 16, 18, 20, 24, 28, 32, 36, 40];
 
 interface SettingRowProps {
   label: string;
@@ -53,12 +51,14 @@ export default function SettingsScreen() {
   const isDark = colorScheme === "dark";
 
   const [settings, setSettings] = useState(loadSettings);
+  const saveTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const update = useCallback(
     <K extends keyof typeof settings>(key: K, value: (typeof settings)[K]) => {
       setSettings((prev) => {
         const next = { ...prev, [key]: value };
-        saveSettings(next);
+        if (saveTimeout.current) clearTimeout(saveTimeout.current);
+        saveTimeout.current = setTimeout(() => saveSettings(next), 200);
         return next;
       });
     },
@@ -109,33 +109,35 @@ export default function SettingsScreen() {
           <Text className={`text-xs font-semibold uppercase mb-3 ${textSecondary}`}>
             Default font size
           </Text>
-          <Text className={`text-xs mb-3 ${textSecondary}`}>
+          <Text className={`text-xs mb-4 ${textSecondary}`}>
             Used when opening a new session. Toolbar +/- adjusts per session.
           </Text>
-          <View className="flex-row flex-wrap gap-2">
-            {FONT_SIZES.map((size) => (
+
+          <View className={`flex-row items-center justify-between py-2 ${isDark ? "border-dark-400" : "border-white-300"} border-b`}>
+            <Text className={`text-sm ${textPrimary}`}>Font size</Text>
+            <View className="flex-row items-center gap-2">
               <TouchableOpacity
-                key={size}
-                onPress={() => update("fontSize", size)}
-                className={`px-3 py-1.5 rounded-md border ${
-                  settings.fontSize === size
-                    ? "bg-blue-500 border-blue-500"
-                    : isDark
-                      ? "bg-dark-500 border-dark-400"
-                      : "bg-white-100 border-white-300"
-                }`}
+                onPress={() => {
+                  const next = Math.max(settings.fontSize - 2, 10);
+                  update("fontSize", next);
+                }}
+                className="p-2"
               >
-                <Text
-                  className={`text-xs ${
-                    settings.fontSize === size
-                      ? "text-white font-bold"
-                      : textSecondary
-                  }`}
-                >
-                  {size}
-                </Text>
+                <Feather name="minus" size={20} color={iconColor} />
               </TouchableOpacity>
-            ))}
+              <Text className={`text-sm font-bold w-12 text-center ${textPrimary}`}>
+                {settings.fontSize}pts
+              </Text>
+              <TouchableOpacity
+                onPress={() => {
+                  const next = Math.min(settings.fontSize + 2, 40);
+                  update("fontSize", next);
+                }}
+                className="p-2"
+              >
+                <Feather name="plus" size={20} color={iconColor} />
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </ScrollView>

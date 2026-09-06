@@ -25,6 +25,7 @@ export default function EditorScreen() {
     fontSize,
     highlightLine,
     showLineNumbers,
+    edgeSpacing,
     handleContentChange,
     handleNew,
     handleOpen,
@@ -157,6 +158,7 @@ export default function EditorScreen() {
         isDark={isDark}
         editable={isEditable}
         fontSize={fontSize}
+        edgeSpacing={edgeSpacing}
         highlightLine={highlightLine}
         showLineNumbers={showLineNumbers}
         currentLine={currentLine}

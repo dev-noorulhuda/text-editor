@@ -27,6 +27,7 @@ export const useEditor = () => {
   const [colorScheme, setColorScheme] = useState<"light" | "dark">(savedSettings.current.colorScheme);
   const [highlightLine, setHighlightLine] = useState(savedSettings.current.highlightLine);
   const [showLineNumbers, setShowLineNumbers] = useState(savedSettings.current.showLineNumbers);
+  const [edgeSpacing, setEdgeSpacing] = useState(savedSettings.current.edgeSpacing);
 
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -61,8 +62,8 @@ export const useEditor = () => {
   }, []);
 
   useEffect(() => {
-    saveSettings({ colorScheme, isEditable, fontSize, highlightLine, showLineNumbers });
-  }, [colorScheme, isEditable, fontSize, highlightLine, showLineNumbers]);
+    saveSettings({ colorScheme, isEditable, fontSize, highlightLine, showLineNumbers, edgeSpacing });
+  }, [colorScheme, isEditable, fontSize, highlightLine, showLineNumbers, edgeSpacing]);
 
   useFocusEffect(
     useCallback(() => {
@@ -70,6 +71,7 @@ export const useEditor = () => {
       setHighlightLine(fresh.highlightLine);
       setShowLineNumbers(fresh.showLineNumbers);
       setFontSize(fresh.fontSize);
+      setEdgeSpacing(fresh.edgeSpacing);
     }, [])
   );
 
@@ -79,7 +81,6 @@ export const useEditor = () => {
         const updated = prev.map((f) =>
           f.id === id ? { ...f, ...updates } : f
         );
-        persistTabs(updated);
         return updated;
       });
     },
@@ -103,7 +104,14 @@ export const useEditor = () => {
       lastContentRef.set(activeFile.id, text);
 
       updateFile(activeFile.id, { content: text, isModified: true });
-      saveFileContent(activeFile.id, text);
+
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+      const fileId = activeFile.id;
+      saveTimeoutRef.current = setTimeout(() => {
+        saveFileContent(fileId, text);
+      }, 400);
     },
     [activeFile, updateFile]
   );
@@ -264,6 +272,7 @@ export const useEditor = () => {
     colorScheme,
     highlightLine,
     showLineNumbers,
+    edgeSpacing,
     handleContentChange,
     handleNew,
     handleOpen,
@@ -279,5 +288,7 @@ export const useEditor = () => {
     toggleColorScheme: useCallback(() => setColorScheme((prev) => (prev === "dark" ? "light" : "dark")), []),
     toggleHighlightLine: useCallback(() => setHighlightLine((prev) => !prev), []),
     toggleShowLineNumbers: useCallback(() => setShowLineNumbers((prev) => !prev), []),
+    increaseEdgeSpacing: useCallback(() => setEdgeSpacing((prev) => Math.min(prev + 2, 40)), []),
+    decreaseEdgeSpacing: useCallback(() => setEdgeSpacing((prev) => Math.max(prev - 2, 0)), []),
   };
 };

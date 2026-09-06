@@ -38,6 +38,7 @@ export interface EditorProps {
   isDark: boolean;
   editable: boolean;
   fontSize: number;
+  edgeSpacing: number;
   highlightLine: boolean;
   showLineNumbers: boolean;
   currentLine: number;

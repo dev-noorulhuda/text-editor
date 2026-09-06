@@ -1,5 +1,6 @@
-import { useCallback, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { View, Text, TextInput } from "react-native";
+import type { NativeSyntheticEvent, TextInputSelectionChangeEventData } from "react-native";
 import { colors } from "@/lib/colors";
 import type { EditorProps } from "@/types/editorTypes";
 
@@ -10,6 +11,7 @@ export const Editor = ({
   isDark,
   editable,
   fontSize,
+  edgeSpacing,
   highlightLine,
   showLineNumbers,
   currentLine,
@@ -18,6 +20,19 @@ export const Editor = ({
 }: EditorProps) => {
   const lineHeight = fontSize * LINE_HEIGHT_RATIO;
   const inputRef = useRef<TextInput>(null);
+  const textRef = useRef(content);
+  const selectionRef = useRef({ start: 0, end: 0 });
+  const [prevCurrentLine, setPrevCurrentLine] = useState(currentLine);
+  const [activeLine, setActiveLine] = useState(currentLine);
+
+  if (currentLine !== prevCurrentLine) {
+    setPrevCurrentLine(currentLine);
+    setActiveLine(currentLine);
+  }
+
+  useEffect(() => {
+    textRef.current = content;
+  }, [content]);
 
   const lines = useMemo(() => {
     const split = content.split("\n");
@@ -25,35 +40,57 @@ export const Editor = ({
     return split;
   }, [content]);
 
+  const charWidth = useMemo(() => {
+    return Math.max(Math.ceil((fontSize - 2) * 0.58), 7);
+  }, [fontSize]);
+
   const gutterWidth = useMemo(() => {
     const digits = String(Math.max(lines.length, 1)).length;
-    return digits * 10 + 28;
-  }, [lines.length]);
+    return digits * charWidth + 16;
+  }, [lines.length, charWidth]);
 
   const handleSelectionChange = useCallback(
-    (e: { nativeEvent: { selection: { start: number } } }) => {
-      const { start } = e.nativeEvent.selection;
-      const textBefore = content.substring(0, start);
+    (e: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
+      const { start, end } = e.nativeEvent.selection;
+      selectionRef.current = { start, end };
+      const currentText = textRef.current;
+      const textBefore = currentText.substring(0, start);
       const line = textBefore.split("\n").length;
+      setActiveLine(line);
       onSelectionChange(line);
     },
-    [content, onSelectionChange]
+    [onSelectionChange]
   );
 
   const handleChangeText = useCallback(
     (text: string) => {
+      const prevText = textRef.current;
+      textRef.current = text;
       onChangeText(text);
-      requestAnimationFrame(() => {
-        if (!inputRef.current) return;
-        inputRef.current.focus();
-      });
+
+      let diffStart = 0;
+      while (
+        diffStart < prevText.length &&
+        diffStart < text.length &&
+        prevText[diffStart] === text[diffStart]
+      ) {
+        diffStart++;
+      }
+      const addedLength = text.length - prevText.length;
+      const cursorIndex = addedLength > 0 ? diffStart + addedLength : diffStart;
+      selectionRef.current = { start: cursorIndex, end: cursorIndex };
+
+      const textBefore = text.substring(0, cursorIndex);
+      const line = textBefore.split("\n").length;
+      setActiveLine(line);
+      onSelectionChange(line);
     },
-    [onChangeText]
+    [onChangeText, onSelectionChange]
   );
 
   const highlightTop = useMemo(
-    () => (currentLine - 1) * lineHeight,
-    [currentLine, lineHeight]
+    () => (activeLine - 1) * lineHeight,
+    [activeLine, lineHeight]
   );
 
   const lineHighlightBg = isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.04)";
@@ -71,12 +108,13 @@ export const Editor = ({
             backgroundColor: gutterBg,
             paddingTop: 12,
             paddingBottom: 12,
-            paddingRight: 6,
+            paddingLeft: 8,
+            paddingRight: 8,
             alignItems: "flex-end",
           }}
         >
           {lines.map((_, i) => {
-            const isActive = i + 1 === currentLine;
+            const isActive = i + 1 === activeLine;
             return (
               <Text
                 key={i}
@@ -86,7 +124,7 @@ export const Editor = ({
                   color: isActive ? gutterActiveColor : gutterColor,
                   fontWeight: isActive ? "700" : "400",
                   textAlign: "right",
-                  minWidth: gutterWidth - 8,
+                  width: "100%",
                 }}
               >
                 {i + 1}
@@ -116,7 +154,8 @@ export const Editor = ({
           style={{
             fontSize,
             lineHeight,
-            paddingHorizontal: 16,
+            paddingLeft: showLineNumbers ? 8 : (edgeSpacing ?? 16),
+            paddingRight: edgeSpacing ?? 16,
             paddingTop: 12,
             paddingBottom: 12,
             backgroundColor: "transparent",

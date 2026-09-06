@@ -8,6 +8,7 @@ export interface AppSettings {
   fontSize: number;
   highlightLine: boolean;
   showLineNumbers: boolean;
+  edgeSpacing: number;
 }
 
 const DEFAULTS: AppSettings = {
@@ -16,6 +17,7 @@ const DEFAULTS: AppSettings = {
   fontSize: 16,
   highlightLine: true,
   showLineNumbers: false,
+  edgeSpacing: 16,
 };
 
 export const loadSettings = (): AppSettings => {
