@@ -51,12 +51,12 @@ export const EditorToolbar = ({
   const canClear = isEditable && canCopy;
 
   return (
-    <View className="flex-1 flex-row items-center justify-end">
+    <View className="flex-row items-center shrink justify-end">
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
         className="shrink"
-        contentContainerClassName="flex-row items-center gap-0.5 justify-end"
+        contentContainerClassName="flex-row items-center gap-0.5 justify-end flex-1"
       >
         <TouchableOpacity
           onPress={() => {
@@ -66,18 +66,11 @@ export const EditorToolbar = ({
           disabled={!canCopy}
           className={`p-1.5 ${!canCopy ? "opacity-30" : ""}`}
         >
-          <Feather name={copied ? "check" : "copy"} size={18} color={iconColor} />
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          onPress={() => {
-            buzz();
-            onClear();
-          }}
-          disabled={!canClear}
-          className={`p-1.5 ${!canClear ? "opacity-30" : ""}`}
-        >
-          <Feather name="trash-2" size={18} color={iconColor} />
+          <Feather
+            name={copied ? "check" : "copy"}
+            size={18}
+            color={iconColor}
+          />
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -140,6 +133,17 @@ export const EditorToolbar = ({
             size={20}
             color={iconColor}
           />
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={() => {
+            buzz();
+            onClear();
+          }}
+          disabled={!canClear}
+          className={`p-1.5 ${!canClear ? "opacity-30" : ""}`}
+        >
+          <Feather name="trash-2" size={18} color={iconColor} />
         </TouchableOpacity>
       </ScrollView>
 

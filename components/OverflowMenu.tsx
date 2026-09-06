@@ -1,17 +1,8 @@
-import { useState } from "react";
-import {
-  TouchableOpacity,
-  Text,
-  View,
-  Modal,
-  Pressable,
-} from "react-native";
-import {
-  MaterialIcons,
-  Feather,
-} from "@expo/vector-icons";
 import { colors } from "@/lib/colors";
 import { buzz } from "@/lib/haptics";
+import { Feather, MaterialIcons } from "@expo/vector-icons";
+import { useState } from "react";
+import { Modal, Pressable, Text, TouchableOpacity, View } from "react-native";
 
 interface OverflowMenuProps {
   isDark: boolean;
@@ -39,11 +30,31 @@ export const OverflowMenu = ({
   const hoverBg = isDark ? "active:bg-dark-500" : "active:bg-white-200";
 
   const items = [
-    { label: "New", icon: <MaterialIcons name="note-add" size={18} color={iconColor} />, action: onNew },
-    { label: "Open", icon: <Feather name="folder" size={18} color={iconColor} />, action: onOpen },
-    { label: "Save", icon: <Feather name="save" size={18} color={iconColor} />, action: onSave },
-    { label: "Save As", icon: <Feather name="save" size={18} color={iconColor} />, action: onSaveAs },
-    { label: "Settings", icon: <Feather name="settings" size={18} color={iconColor} />, action: onSettings },
+    {
+      label: "New",
+      icon: <MaterialIcons name="note-add" size={18} color={iconColor} />,
+      action: onNew,
+    },
+    {
+      label: "Open",
+      icon: <Feather name="folder" size={18} color={iconColor} />,
+      action: onOpen,
+    },
+    {
+      label: "Save",
+      icon: <Feather name="save" size={18} color={iconColor} />,
+      action: onSave,
+    },
+    {
+      label: "Save As",
+      icon: <Feather name="save" size={18} color={iconColor} />,
+      action: onSaveAs,
+    },
+    {
+      label: "Settings",
+      icon: <Feather name="settings" size={18} color={iconColor} />,
+      action: onSettings,
+    },
   ];
 
   return (

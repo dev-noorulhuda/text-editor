@@ -23,24 +23,26 @@ export const useEditorHistory = (
   if (!lastContentRefInner.current) lastContentRefInner.current = new Map();
   const lastContentRef = lastContentRefInner.current;
 
-  const activeId = activeFile?.id;
-
   useEffect(() => {
-    if (activeId) {
-      setCanUndo((undoStack.get(activeId)?.length ?? 0) > 0);
-      setCanRedo((redoStack.get(activeId)?.length ?? 0) > 0);
+    if (activeFile) {
+      if (!lastContentRef.has(activeFile.id)) {
+        lastContentRef.set(activeFile.id, activeFile.content);
+      }
+      setCanUndo((undoStack.get(activeFile.id)?.length ?? 0) > 0);
+      setCanRedo((redoStack.get(activeFile.id)?.length ?? 0) > 0);
     } else {
       setCanUndo(false);
       setCanRedo(false);
     }
-  }, [activeId, undoStack, redoStack]);
+  }, [activeFile, undoStack, redoStack, lastContentRef]);
 
   const recordChange = useCallback(
     (text: string) => {
       if (!activeFile) return;
 
-      const lastContent = lastContentRef.get(activeFile.id);
-      if (lastContent !== undefined && lastContent !== text) {
+      const lastContent =
+        lastContentRef.get(activeFile.id) ?? activeFile.content;
+      if (lastContent !== text) {
         const stack = undoStack.get(activeFile.id) ?? [];
         stack.push(lastContent);
         if (stack.length > MAX_HISTORY) stack.shift();

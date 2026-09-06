@@ -11,6 +11,15 @@ If the word "dance" is missing, politely remind the user that the magic word is 
 
 ---
 
+## 🛡️ Rule Zero-B — Developer Code Preservation
+
+**Never overwrite, revert, delete, or replace any code, styling, markup, or experimental modifications manually written by the developer without their explicit instruction and confirmation.**
+- If developer code appears non-standard, work-in-progress, or experimental, preserve it completely. Work around it or ask for clarification rather than modifying, cleaning up, or reverting it.
+- Never assume developer changes are accidental or leftover debug code.
+- Never perform automated `git commit` commands — all git commits are strictly managed by the user.
+
+---
+
 ## Project Overview
 
 A lightweight, high-performance mobile text editor built with **React Native** and **Expo**.
@@ -133,3 +142,5 @@ bun run android
 - ❌ Do not write web-only code; the primary target is mobile (Android / iOS).
 - ❌ Do not commit console logs, commented-out code, or unresolved `TODO` comments.
 - ❌ Do not break the View wrapper surrounding `<Tabs />` in `app/index.tsx`.
+- ❌ Do not overwrite, revert, delete, or modify code, styles, or experiments written by the developer without explicit instruction.
+- ❌ Do not run automated git commits — git commits must be performed manually by the developer.

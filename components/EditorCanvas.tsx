@@ -1,6 +1,6 @@
 import { colors } from "@/lib/colors";
 import { CONTENT_PADDING_TOP } from "@/lib/editorHelpers";
-import { forwardRef } from "react";
+import { forwardRef, useCallback, useRef } from "react";
 import {
   Text,
   TextInput,
@@ -58,6 +58,20 @@ export const EditorCanvas = forwardRef<TextInput, EditorCanvasProps>(
     },
     ref,
   ) => {
+    const innerRef = useRef<TextInput | null>(null);
+
+    const setMergedRef = useCallback(
+      (node: TextInput | null) => {
+        innerRef.current = node;
+        if (typeof ref === "function") {
+          ref(node);
+        } else if (ref) {
+          ref.current = node;
+        }
+      },
+      [ref],
+    );
+
     const lineHighlightBg = isDark
       ? "rgba(255,255,255,0.07)"
       : "rgba(0,0,0,0.04)";
@@ -65,7 +79,9 @@ export const EditorCanvas = forwardRef<TextInput, EditorCanvasProps>(
     return (
       <View
         onTouchEnd={(e) => {
-          if (editable && e.target === e.currentTarget) {
+          if (!editable) {
+            onReadOnlyNotice?.();
+          } else if (e.target === e.currentTarget) {
             onTapBlank();
           }
         }}
@@ -113,7 +129,7 @@ export const EditorCanvas = forwardRef<TextInput, EditorCanvasProps>(
         )}
         <TextInput
           key={resolvedFont}
-          ref={ref}
+          ref={setMergedRef}
           textBreakStrategy="simple"
           style={{
             fontSize,
@@ -134,9 +150,13 @@ export const EditorCanvas = forwardRef<TextInput, EditorCanvasProps>(
           multiline
           scrollEnabled={false}
           value={normalizedContent}
+          editable={editable}
+          readOnly={!editable}
+          maxLength={editable ? undefined : normalizedContent.length}
           onChangeText={(text) => {
             if (!editable) {
               onReadOnlyNotice?.();
+              innerRef.current?.setNativeProps({ text: normalizedContent });
               return;
             }
             handleChangeText(text);
@@ -147,7 +167,7 @@ export const EditorCanvas = forwardRef<TextInput, EditorCanvasProps>(
             }
           }}
           onSelectionChange={handleSelectionChange}
-          placeholder="Start typing..."
+          placeholder="Write something..."
           placeholderTextColor={isDark ? colors.dark[300] : colors.white[500]}
           textAlignVertical="top"
           underlineColorAndroid="transparent"

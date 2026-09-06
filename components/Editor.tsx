@@ -101,11 +101,25 @@ export const Editor = ({
     [lines],
   );
 
-  const estimatedWidth =
-    maxLineLength * Math.max(Math.ceil(fontSize * 0.7), 10) + 60;
-  const canvasWidth = wordWrap
-    ? "100%"
-    : Math.max(estimatedWidth, viewportWidth);
+  const padLeft = showLineNumbers ? 6 : 0;
+  const horizontalPadding = showLineNumbers
+    ? (edgeSpacing ?? 0)
+    : Math.max(edgeSpacing ?? 0, 12);
+
+  const availableCanvasWidth = Math.max(
+    0,
+    viewportWidth -
+      horizontalPadding * 2 -
+      (showLineNumbers ? gutterWidth : 0),
+  );
+
+  const charEstimate = Math.ceil(fontSize * 0.65);
+  const textContentWidth = maxLineLength * charEstimate + padLeft + 20;
+
+  const canvasWidth =
+    wordWrap || textContentWidth <= availableCanvasWidth
+      ? "100%"
+      : textContentWidth;
 
   const gutterColor = isDark ? colors.dark[300] : colors.white[500];
   const resolvedFont = resolveFontFamily(fontFamily);
@@ -115,7 +129,6 @@ export const Editor = ({
     lines.length,
   );
   const totalHeight = Math.max(rowCount * lineHeight + 24, viewportHeight);
-  const padLeft = showLineNumbers ? 6 : 0;
 
   const focusInput = useCallback(() => {
     if (editable) inputRef.current?.focus();
@@ -144,10 +157,6 @@ export const Editor = ({
       onReadOnlyNotice={onReadOnlyNotice}
     />
   );
-
-  const horizontalPadding = showLineNumbers
-    ? (edgeSpacing ?? 0)
-    : Math.max(edgeSpacing ?? 0, 12);
 
   return (
     <ScrollView
