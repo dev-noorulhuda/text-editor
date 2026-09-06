@@ -1,9 +1,9 @@
-import { useCallback, useState } from "react";
-import { Modal, Pressable, Text, TouchableOpacity, View } from "react-native";
-import { Feather, MaterialIcons } from "@expo/vector-icons";
 import { colors } from "@/lib/colors";
 import { resolveFontFamily } from "@/lib/fontHelpers";
 import type { FontFamily } from "@/lib/settingsStore";
+import { Feather, MaterialIcons } from "@expo/vector-icons";
+import { useCallback, useState } from "react";
+import { Modal, Pressable, Text, TouchableOpacity, View } from "react-native";
 
 interface FontFamilyModalProps {
   visible: boolean;
