@@ -1,4 +1,5 @@
 import { AnimatedToggle } from "@/components/AnimatedToggle";
+import { EdgeSpacingModal } from "@/components/EdgeSpacingModal";
 import { colors } from "@/lib/colors";
 import { loadSettings, saveSettings } from "@/lib/settingsStore";
 import { Feather, MaterialIcons } from "@expo/vector-icons";
@@ -51,6 +52,7 @@ export default function SettingsScreen() {
   const isDark = colorScheme === "dark";
 
   const [settings, setSettings] = useState(loadSettings);
+  const [showSpacingModal, setShowSpacingModal] = useState(false);
   const saveTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const update = useCallback(
@@ -117,26 +119,48 @@ export default function SettingsScreen() {
               update("showLineNumbers", !settings.showLineNumbers)
             }
           />
-        </View>
 
-        <View className={`rounded-lg border p-4 ${cardBg} ${cardBorder}`}>
-          <Text
-            className={`text-xs font-semibold uppercase mb-3 ${textSecondary}`}
+          <TouchableOpacity
+            onPress={() => setShowSpacingModal(true)}
+            className={`flex-row items-center justify-between py-3 ${
+              isDark ? "border-dark-400" : "border-white-300"
+            } border-b`}
           >
-            Default font size
-          </Text>
-          <Text className={`text-xs mb-4 ${textSecondary}`}>
-            Used when opening a new session. Toolbar +/- adjusts per session.
-          </Text>
-
+            <View className="flex-row items-center flex-1 mr-4">
+              <View className="mr-3">
+                <MaterialIcons name="space-bar" size={22} color={iconColor} />
+              </View>
+              <View className="flex-1">
+                <Text className={`text-sm font-medium ${textPrimary}`}>
+                  Edge spacing
+                </Text>
+                <Text className={`text-xs mt-0.5 ${textSecondary}`}>
+                  Spacing from the left screen corner
+                </Text>
+              </View>
+            </View>
+            <View className="flex-row items-center gap-1.5">
+              <Text className={`text-sm font-bold ${textPrimary}`}>
+                {settings.edgeSpacing}px
+              </Text>
+              <Feather name="chevron-right" size={18} color={iconColor} />
+            </View>
+          </TouchableOpacity>
           <View
-            className={`flex-row items-center justify-between py-2 ${isDark ? "border-dark-400" : "border-white-300"} border-b`}
+            className="flex-row items-center justify-between py-3"
           >
-            <View className="flex-row items-center">
+            <View className="flex-row items-center flex-1 mr-4">
               <View className="mr-3">
                 <MaterialIcons name="format-size" size={22} color={iconColor} />
               </View>
-              <Text className={`text-sm ${textPrimary}`}>Font size</Text>
+              <View className="flex-1">
+                <Text className={`text-sm font-medium ${textPrimary}`}>
+                  Font size
+                </Text>
+                <Text className={`text-xs mt-0.5 ${textSecondary}`}>
+                  Default font size for new sessions
+                </Text>
+              </View>
             </View>
             <View className="flex-row items-center gap-2">
               <TouchableOpacity
@@ -144,9 +168,9 @@ export default function SettingsScreen() {
                   const next = Math.max(settings.fontSize - 2, 10);
                   update("fontSize", next);
                 }}
-                className="p-2"
+                className={`p-1.5 rounded-full border ${cardBorder}`}
               >
-                <Feather name="minus" size={20} color={iconColor} />
+                <Feather name="minus" size={16} color={iconColor} />
               </TouchableOpacity>
               <Text
                 className={`text-sm font-bold w-12 text-center ${textPrimary}`}
@@ -158,14 +182,22 @@ export default function SettingsScreen() {
                   const next = Math.min(settings.fontSize + 2, 40);
                   update("fontSize", next);
                 }}
-                className="p-2"
+                className={`p-1.5 rounded-full border ${cardBorder}`}
               >
-                <Feather name="plus" size={20} color={iconColor} />
+                <Feather name="plus" size={16} color={iconColor} />
               </TouchableOpacity>
             </View>
           </View>
         </View>
       </ScrollView>
+
+      <EdgeSpacingModal
+        visible={showSpacingModal}
+        value={settings.edgeSpacing}
+        isDark={isDark}
+        onClose={() => setShowSpacingModal(false)}
+        onConfirm={(val) => update("edgeSpacing", val)}
+      />
     </SafeAreaView>
   );
 }

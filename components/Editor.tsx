@@ -1,8 +1,11 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { View, Text, TextInput } from "react-native";
-import type { NativeSyntheticEvent, TextInputSelectionChangeEventData } from "react-native";
 import { colors } from "@/lib/colors";
 import type { EditorProps } from "@/types/editorTypes";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type {
+  NativeSyntheticEvent,
+  TextInputSelectionChangeEventData,
+} from "react-native";
+import { Text, TextInput, View } from "react-native";
 
 const LINE_HEIGHT_RATIO = 1.5;
 
@@ -59,7 +62,7 @@ export const Editor = ({
       setActiveLine(line);
       onSelectionChange(line);
     },
-    [onSelectionChange]
+    [onSelectionChange],
   );
 
   const handleChangeText = useCallback(
@@ -85,15 +88,17 @@ export const Editor = ({
       setActiveLine(line);
       onSelectionChange(line);
     },
-    [onChangeText, onSelectionChange]
+    [onChangeText, onSelectionChange],
   );
 
   const highlightTop = useMemo(
     () => (activeLine - 1) * lineHeight,
-    [activeLine, lineHeight]
+    [activeLine, lineHeight],
   );
 
-  const lineHighlightBg = isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.04)";
+  const lineHighlightBg = isDark
+    ? "rgba(255,255,255,0.07)"
+    : "rgba(0,0,0,0.04)";
 
   const gutterBg = isDark ? colors.dark[600] : colors.white[200];
   const gutterActiveColor = isDark ? colors.dark[100] : colors.white[900];
@@ -110,6 +115,7 @@ export const Editor = ({
             paddingBottom: 12,
             paddingLeft: 8,
             paddingRight: 8,
+            marginLeft: edgeSpacing ?? 0,
             alignItems: "flex-end",
           }}
         >
