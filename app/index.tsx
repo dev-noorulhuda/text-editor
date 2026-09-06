@@ -6,10 +6,11 @@ import { colors } from "@/lib/colors";
 import { detectLanguage } from "@/lib/languageRegistry";
 import type { TabFile } from "@/types/editorTypes";
 import { Feather, MaterialIcons } from "@expo/vector-icons";
+import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
 import { useCallback, useState } from "react";
-import { Text, TouchableOpacity, View } from "react-native";
+import { Clipboard, Keyboard, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function EditorScreen() {
@@ -47,6 +48,7 @@ export default function EditorScreen() {
 
   const [prevActiveFileId, setPrevActiveFileId] = useState(activeFileId);
   const [currentLine, setCurrentLine] = useState(1);
+  const [copied, setCopied] = useState(false);
 
   if (activeFileId !== prevActiveFileId) {
     setPrevActiveFileId(activeFileId);
@@ -61,6 +63,25 @@ export default function EditorScreen() {
     toggleNativewind();
     togglePersisted();
   };
+
+  const handleToggleEditable = useCallback(() => {
+    if (isEditable) {
+      Keyboard.dismiss();
+    }
+    toggleEditable();
+  }, [isEditable, toggleEditable]);
+
+  const handleCopyAll = useCallback(async () => {
+    const text = activeFile?.content ?? "";
+    Clipboard.setString(text);
+    try {
+      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    } catch {
+      // ignore if haptics unavailable
+    }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  }, [activeFile?.content]);
 
   const currentLang = detectLanguage(activeFile?.name);
   const isCode = currentLang.isCode;
@@ -111,10 +132,18 @@ export default function EditorScreen() {
         </View>
 
         <View className="flex-row items-center gap-1">
-          <TouchableOpacity onPress={toggleEditable} className="p-2">
+          <TouchableOpacity onPress={handleToggleEditable} className="p-2">
             <MaterialIcons
               name={isEditable ? "edit" : "edit-off"}
               size={20}
+              color={iconColor}
+            />
+          </TouchableOpacity>
+
+          <TouchableOpacity onPress={handleCopyAll} className="p-2">
+            <Feather
+              name={copied ? "check" : "copy"}
+              size={18}
               color={iconColor}
             />
           </TouchableOpacity>

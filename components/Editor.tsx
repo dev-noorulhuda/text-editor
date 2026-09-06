@@ -170,7 +170,7 @@ export const Editor = ({
         multiline
         scrollEnabled={false}
         value={normalizedContent}
-        onChangeText={handleChangeText}
+        onChangeText={editable ? handleChangeText : undefined}
         onSelectionChange={handleSelectionChange}
         placeholder="Start typing..."
         placeholderTextColor={isDark ? colors.dark[300] : colors.white[500]}
@@ -178,7 +178,7 @@ export const Editor = ({
         underlineColorAndroid="transparent"
         autoCapitalize="none"
         autoCorrect={false}
-        editable={editable}
+        showSoftInputOnFocus={editable}
       />
     </View>
   );
