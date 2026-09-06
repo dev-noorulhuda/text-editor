@@ -105,7 +105,7 @@ export default function EditorScreen() {
           isDark ? "bg-dark-600" : "bg-white-200"
         }`}
       >
-        <View className="flex-row items-center gap-1.5 mr-2 shrink min-w-0 max-w-[45%]">
+        <View className="flex-row items-center mr-2 shrink min-w-0 max-w-[45%]">
           <Text
             numberOfLines={1}
             ellipsizeMode="middle"
@@ -115,21 +115,6 @@ export default function EditorScreen() {
           >
             {activeFile?.name ?? "Untitled"}
           </Text>
-          {isCode && (
-            <View
-              className={`px-1.5 py-0.5 rounded shrink-0 ${
-                isDark ? "bg-dark-400" : "bg-white-300"
-              }`}
-            >
-              <Text
-                className={`text-[10px] font-semibold tracking-wider uppercase ${
-                  isDark ? "text-dark-100" : "text-white-800"
-                }`}
-              >
-                {currentLang.name}
-              </Text>
-            </View>
-          )}
         </View>
 
         <EditorToolbar
