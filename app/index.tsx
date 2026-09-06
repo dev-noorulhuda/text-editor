@@ -1,5 +1,6 @@
 import { Editor } from "@/components/Editor";
 import { EditorToolbar } from "@/components/EditorToolbar";
+import { Snackbar } from "@/components/Snackbar";
 import { Tabs } from "@/components/Tabs";
 import { UnsavedChangesModal } from "@/components/UnsavedChangesModal";
 import { useEditor } from "@/hooks/useEditor";
@@ -9,7 +10,7 @@ import type { TabFile } from "@/types/editorTypes";
 import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { Clipboard, Keyboard, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -52,6 +53,23 @@ export default function EditorScreen() {
   const [prevActiveFileId, setPrevActiveFileId] = useState(activeFileId);
   const [currentLine, setCurrentLine] = useState(1);
   const [copied, setCopied] = useState(false);
+  const [snackbarVisible, setSnackbarVisible] = useState(false);
+  const snackbarTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const showReadOnlyNotice = useCallback(() => {
+    if (snackbarTimeout.current) clearTimeout(snackbarTimeout.current);
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(
+      () => {},
+    );
+    setSnackbarVisible(true);
+    snackbarTimeout.current = setTimeout(() => {
+      setSnackbarVisible(false);
+    }, 2200);
+  }, []);
+
+  const handleClear = useCallback(() => {
+    handleContentChange("");
+  }, [handleContentChange]);
 
   if (activeFileId !== prevActiveFileId) {
     setPrevActiveFileId(activeFileId);
@@ -128,6 +146,7 @@ export default function EditorScreen() {
           copied={copied}
           onToggleEditable={handleToggleEditable}
           onCopyAll={handleCopyAll}
+          onClear={handleClear}
           onDecreaseFontSize={decreaseFontSize}
           onIncreaseFontSize={increaseFontSize}
           onUndo={handleUndo}
@@ -167,6 +186,7 @@ export default function EditorScreen() {
         autoFocus={openKeyboardAtStart}
         onChangeText={handleContentChange}
         onSelectionChange={handleSelectionChange}
+        onReadOnlyNotice={showReadOnlyNotice}
       />
 
       <UnsavedChangesModal
@@ -176,6 +196,12 @@ export default function EditorScreen() {
         onCancel={handleCancelClose}
         onDiscard={handleDiscardClose}
         onSave={handleSaveClose}
+      />
+
+      <Snackbar
+        visible={snackbarVisible}
+        message="Read-only mode is active"
+        isDark={isDark}
       />
     </SafeAreaView>
   );

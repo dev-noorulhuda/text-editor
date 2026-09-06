@@ -47,6 +47,7 @@ export interface EditorProps {
   autoFocus?: boolean;
   onChangeText: (text: string) => void;
   onSelectionChange: (line: number) => void;
+  onReadOnlyNotice?: () => void;
 }
 
 export interface PromptConfig {

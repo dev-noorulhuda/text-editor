@@ -14,6 +14,7 @@ export interface EditorToolbarProps {
   copied: boolean;
   onToggleEditable: () => void;
   onCopyAll: () => void;
+  onClear: () => void;
   onDecreaseFontSize: () => void;
   onIncreaseFontSize: () => void;
   onUndo: () => void;
@@ -36,6 +37,7 @@ export const EditorToolbar = ({
   copied,
   onToggleEditable,
   onCopyAll,
+  onClear,
   onDecreaseFontSize,
   onIncreaseFontSize,
   onUndo,
@@ -46,13 +48,15 @@ export const EditorToolbar = ({
   onSaveAs,
   onSettings,
 }: EditorToolbarProps) => {
+  const canClear = isEditable && canCopy;
+
   return (
     <View className="flex-1 flex-row items-center justify-end">
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
         className="shrink"
-        contentContainerClassName="flex-row items-center gap-0.5"
+        contentContainerClassName="flex-row items-center gap-0.5 justify-end"
       >
         <TouchableOpacity
           onPress={() => {
@@ -63,6 +67,17 @@ export const EditorToolbar = ({
           className={`p-1.5 ${!canCopy ? "opacity-30" : ""}`}
         >
           <Feather name={copied ? "check" : "copy"} size={18} color={iconColor} />
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={() => {
+            buzz();
+            onClear();
+          }}
+          disabled={!canClear}
+          className={`p-1.5 ${!canClear ? "opacity-30" : ""}`}
+        >
+          <Feather name="trash-2" size={18} color={iconColor} />
         </TouchableOpacity>
 
         <TouchableOpacity

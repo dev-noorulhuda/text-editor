@@ -31,6 +31,7 @@ export interface EditorCanvasProps {
     e: NativeSyntheticEvent<TextInputSelectionChangeEventData>,
   ) => void;
   onTapBlank: () => void;
+  onReadOnlyNotice?: () => void;
 }
 
 export const EditorCanvas = forwardRef<TextInput, EditorCanvasProps>(
@@ -53,6 +54,7 @@ export const EditorCanvas = forwardRef<TextInput, EditorCanvasProps>(
       handleChangeText,
       handleSelectionChange,
       onTapBlank,
+      onReadOnlyNotice,
     },
     ref,
   ) => {
@@ -132,7 +134,18 @@ export const EditorCanvas = forwardRef<TextInput, EditorCanvasProps>(
           multiline
           scrollEnabled={false}
           value={normalizedContent}
-          onChangeText={editable ? handleChangeText : undefined}
+          onChangeText={(text) => {
+            if (!editable) {
+              onReadOnlyNotice?.();
+              return;
+            }
+            handleChangeText(text);
+          }}
+          onKeyPress={() => {
+            if (!editable) {
+              onReadOnlyNotice?.();
+            }
+          }}
           onSelectionChange={handleSelectionChange}
           placeholder="Start typing..."
           placeholderTextColor={isDark ? colors.dark[300] : colors.white[500]}

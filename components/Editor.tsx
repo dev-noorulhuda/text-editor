@@ -31,6 +31,7 @@ export const Editor = ({
   autoFocus,
   onChangeText,
   onSelectionChange,
+  onReadOnlyNotice,
 }: EditorProps) => {
   const lineHeight = Math.round(fontSize * LINE_HEIGHT_RATIO);
   const inputRef = useRef<TextInput>(null);
@@ -140,6 +141,7 @@ export const Editor = ({
       handleChangeText={handleChangeText}
       handleSelectionChange={handleSelectionChange}
       onTapBlank={focusInput}
+      onReadOnlyNotice={onReadOnlyNotice}
     />
   );
 
