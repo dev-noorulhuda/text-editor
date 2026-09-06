@@ -12,7 +12,7 @@ export const useEditorSettings = () => {
   const [isEditable, setIsEditable] = useState(saved.current.isEditable);
   const [fontSize, setFontSize] = useState(saved.current.fontSize);
   const [fontFamily, setFontFamily] = useState<FontFamily>(
-    saved.current.fontFamily ?? "monospace",
+    saved.current.fontFamily ?? "system",
   );
   const [colorScheme, setColorScheme] = useState<"light" | "dark">(
     saved.current.colorScheme,
@@ -56,7 +56,7 @@ export const useEditorSettings = () => {
       setHighlightLine(fresh.highlightLine);
       setShowLineNumbers(fresh.showLineNumbers);
       setFontSize(fresh.fontSize);
-      setFontFamily(fresh.fontFamily ?? "monospace");
+      setFontFamily(fresh.fontFamily ?? "system");
       setEdgeSpacing(fresh.edgeSpacing);
       setOpenKeyboardAtStart(fresh.openKeyboardAtStart);
     }, []),

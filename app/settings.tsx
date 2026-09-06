@@ -151,7 +151,7 @@ export default function SettingsScreen() {
             </View>
             <View className="flex-row items-center gap-1.5">
               <Text className={`text-sm font-bold ${textPrimary}`}>
-                {formatFontFamily(settings.fontFamily ?? "monospace")}
+                {formatFontFamily(settings.fontFamily ?? "system")}
               </Text>
               <Feather name="chevron-right" size={18} color={iconColor} />
             </View>
@@ -219,7 +219,7 @@ export default function SettingsScreen() {
       {/* Font Family Modal */}
       <FontFamilyModal
         visible={showFontFamilyModal}
-        value={settings.fontFamily ?? "monospace"}
+        value={settings.fontFamily ?? "system"}
         isDark={isDark}
         onClose={() => setShowFontFamilyModal(false)}
         onConfirm={(family) => update("fontFamily", family)}

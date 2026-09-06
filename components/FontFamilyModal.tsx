@@ -2,6 +2,7 @@ import { useCallback, useState } from "react";
 import { Modal, Pressable, Text, TouchableOpacity, View } from "react-native";
 import { Feather, MaterialIcons } from "@expo/vector-icons";
 import { colors } from "@/lib/colors";
+import { resolveFontFamily } from "@/lib/fontHelpers";
 import type { FontFamily } from "@/lib/settingsStore";
 
 interface FontFamilyModalProps {
@@ -38,7 +39,7 @@ const FONT_OPTIONS: {
   },
 ];
 
-const DEFAULT_FAMILY: FontFamily = "monospace";
+const DEFAULT_FAMILY: FontFamily = "system";
 
 export const FontFamilyModal = ({
   visible,
@@ -133,7 +134,7 @@ export const FontFamilyModal = ({
                     </Text>
                     <Text
                       style={{
-                        fontFamily: opt.id === "system" ? undefined : opt.id,
+                        fontFamily: resolveFontFamily(opt.id),
                       }}
                       className={`text-xs mt-1 ${textSecondary}`}
                     >

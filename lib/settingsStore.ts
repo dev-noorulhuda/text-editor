@@ -19,7 +19,7 @@ const DEFAULTS: AppSettings = {
   colorScheme: "light",
   isEditable: true,
   fontSize: 16,
-  fontFamily: "monospace",
+  fontFamily: "system",
   highlightLine: true,
   showLineNumbers: false,
   edgeSpacing: 2,

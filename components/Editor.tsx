@@ -1,4 +1,5 @@
 import { colors } from "@/lib/colors";
+import { resolveFontFamily } from "@/lib/fontHelpers";
 import type { EditorProps } from "@/types/editorTypes";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type {
@@ -15,7 +16,7 @@ export const Editor = ({
   isDark,
   editable,
   fontSize,
-  fontFamily = "monospace",
+  fontFamily = "system",
   edgeSpacing,
   highlightLine,
   showLineNumbers,
@@ -112,6 +113,7 @@ export const Editor = ({
     : "rgba(0,0,0,0.04)";
 
   const gutterColor = isDark ? colors.dark[300] : colors.white[500];
+  const resolvedFont = resolveFontFamily(fontFamily);
 
   return (
     <View className="flex-1 flex-row">
@@ -138,7 +140,7 @@ export const Editor = ({
                 fontWeight: "400",
                 textAlign: "right",
                 width: "100%",
-                fontFamily: fontFamily === "system" ? undefined : fontFamily,
+                fontFamily: resolvedFont,
               }}
             >
               {i + 1}
@@ -162,12 +164,13 @@ export const Editor = ({
           />
         )}
         <TextInput
+          key={resolvedFont}
           ref={inputRef}
           className="flex-1"
           style={{
             fontSize,
             lineHeight,
-            fontFamily: fontFamily === "system" ? undefined : fontFamily,
+            fontFamily: resolvedFont,
             paddingLeft: showLineNumbers
               ? 8
               : BASE_EDGE_SPACING + (edgeSpacing ?? 0),
