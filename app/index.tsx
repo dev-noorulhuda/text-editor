@@ -3,6 +3,7 @@ import { OverflowMenu } from "@/components/OverflowMenu";
 import { Tabs } from "@/components/Tabs";
 import { useEditor } from "@/hooks/useEditor";
 import { colors } from "@/lib/colors";
+import { detectLanguage } from "@/lib/languageRegistry";
 import type { TabFile } from "@/types/editorTypes";
 import { Feather, MaterialIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
@@ -61,6 +62,11 @@ export default function EditorScreen() {
     togglePersisted();
   };
 
+  const currentLang = detectLanguage(activeFile?.name);
+  const isCode = currentLang.isCode;
+  const effectiveFont =
+    fontFamily === "system" && isCode ? "monospace" : fontFamily;
+
   const tabFiles: TabFile[] = files.map((f) => ({
     id: f.id,
     name: f.name,
@@ -79,13 +85,30 @@ export default function EditorScreen() {
           isDark ? "bg-dark-600" : "bg-white-200"
         }`}
       >
-        <Text
-          className={`text-lg font-bold ${
-            isDark ? "text-dark-100" : "text-white-900"
-          }`}
-        >
-          Text Editor
-        </Text>
+        <View className="flex-row items-center gap-2">
+          <Text
+            className={`text-lg font-bold ${
+              isDark ? "text-dark-100" : "text-white-900"
+            }`}
+          >
+            Text Editor
+          </Text>
+          {isCode && (
+            <View
+              className={`px-1.5 py-0.5 rounded ${
+                isDark ? "bg-dark-400" : "bg-white-300"
+              }`}
+            >
+              <Text
+                className={`text-[10px] font-semibold tracking-wider uppercase ${
+                  isDark ? "text-dark-100" : "text-white-800"
+                }`}
+              >
+                {currentLang.name}
+              </Text>
+            </View>
+          )}
+        </View>
 
         <View className="flex-row items-center gap-1">
           <TouchableOpacity onPress={toggleEditable} className="p-2">
@@ -163,7 +186,7 @@ export default function EditorScreen() {
         isDark={isDark}
         editable={isEditable}
         fontSize={fontSize}
-        fontFamily={fontFamily}
+        fontFamily={effectiveFont}
         edgeSpacing={edgeSpacing}
         highlightLine={highlightLine}
         showLineNumbers={showLineNumbers}

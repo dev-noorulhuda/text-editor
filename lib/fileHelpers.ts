@@ -1,7 +1,8 @@
 import type { FileResult } from "@/types/editorTypes";
-import { pick, saveDocuments } from "@react-native-documents/picker";
+import { getMimeTypeForFileName } from "@/lib/languageRegistry";
+import { pick, saveDocuments, types } from "@react-native-documents/picker";
 import { File, Paths } from "expo-file-system";
-import { writeAsStringAsync } from "expo-file-system/legacy";
+import { readAsStringAsync, writeAsStringAsync } from "expo-file-system/legacy";
 
 const extractFileName = (uri: string, fallback: string): string => {
   try {
@@ -27,7 +28,7 @@ const extractFileName = (uri: string, fallback: string): string => {
 export const openFile = async (): Promise<FileResult> => {
   try {
     const results = await pick({
-      type: ["*/*"],
+      type: [types.allFiles, "*/*"],
       mode: "open",
       requestLongTermAccess: true,
     });
@@ -37,9 +38,20 @@ export const openFile = async (): Promise<FileResult> => {
     }
 
     const picked = results[0];
-    const file = new File(picked.uri);
-    const rawContent = file.textSync();
-    const content = rawContent.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+    if (!picked) {
+      return { success: false };
+    }
+
+    let rawContent = "";
+    try {
+      const file = new File(picked.uri);
+      rawContent = file.textSync();
+    } catch {
+      rawContent = await readAsStringAsync(picked.uri, { encoding: "utf8" });
+    }
+
+    const cleanContent = rawContent.replace(/\0/g, "");
+    const content = cleanContent.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
     const fileName = picked.name || extractFileName(picked.uri, "Untitled.txt");
 
     return {
@@ -88,9 +100,10 @@ export const saveFileAs = async (
     const tempFile = new File(Paths.cache, safeName);
     tempFile.write(normalized);
 
+    const mimeType = getMimeTypeForFileName(safeName);
     const results = await saveDocuments({
       sourceUris: [tempFile.uri],
-      mimeType: "text/plain",
+      mimeType,
       fileName: safeName,
     });
 
