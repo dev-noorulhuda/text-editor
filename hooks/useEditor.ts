@@ -1,6 +1,6 @@
 import { useEditorHistory } from "@/hooks/useEditorHistory";
 import { useEditorSettings } from "@/hooks/useEditorSettings";
-import { openFile, saveFile, saveFileAs } from "@/lib/fileHelpers";
+import { openFile, saveFileAs } from "@/lib/fileHelpers";
 import {
   deleteFileContent,
   generateId,
@@ -143,25 +143,20 @@ export const useEditor = () => {
 
     const result = await saveFileAs(activeFile.content, activeFile.name);
     if (result.success && result.uri) {
-      updateFile(activeFile.id, {
-        uri: result.uri,
-        isModified: false,
+      const newName = result.fileName ?? activeFile.name;
+      setFiles((prev) => {
+        const updated = prev.map((f) =>
+          f.id === activeFile.id
+            ? { ...f, uri: result.uri!, name: newName, isModified: false }
+            : f,
+        );
+        persistTabs(updated);
+        return updated;
       });
     }
-  }, [activeFile, updateFile]);
+  }, [activeFile]);
 
-  const handleSave = useCallback(async () => {
-    if (!activeFile) return;
-
-    if (activeFile.uri) {
-      const result = await saveFile(activeFile.content, activeFile.uri);
-      if (result.success) {
-        updateFile(activeFile.id, { isModified: false });
-      }
-    } else {
-      await handleSaveAs();
-    }
-  }, [activeFile, updateFile, handleSaveAs]);
+  const handleSave = useCallback(async () => {}, [activeFile, handleSaveAs]);
 
   const handleClose = useCallback(
     (id: string) => {

@@ -27,6 +27,9 @@ export const useEditorSettings = () => {
   const [openKeyboardAtStart, setOpenKeyboardAtStart] = useState(
     saved.current.openKeyboardAtStart,
   );
+  const [clearSessionOnRestart, setClearSessionOnRestart] = useState(
+    saved.current.clearSessionOnRestart ?? false,
+  );
 
   useEffect(() => {
     saveSettings({
@@ -38,6 +41,7 @@ export const useEditorSettings = () => {
       showLineNumbers,
       edgeSpacing,
       openKeyboardAtStart,
+      clearSessionOnRestart,
     });
   }, [
     colorScheme,
@@ -48,6 +52,7 @@ export const useEditorSettings = () => {
     showLineNumbers,
     edgeSpacing,
     openKeyboardAtStart,
+    clearSessionOnRestart,
   ]);
 
   useFocusEffect(
@@ -59,6 +64,7 @@ export const useEditorSettings = () => {
       setFontFamily(fresh.fontFamily ?? "system");
       setEdgeSpacing(fresh.edgeSpacing);
       setOpenKeyboardAtStart(fresh.openKeyboardAtStart);
+      setClearSessionOnRestart(fresh.clearSessionOnRestart ?? false);
     }, []),
   );
 
@@ -71,6 +77,7 @@ export const useEditorSettings = () => {
     showLineNumbers,
     edgeSpacing,
     openKeyboardAtStart,
+    clearSessionOnRestart,
     toggleEditable: useCallback(() => setIsEditable((prev) => !prev), []),
     increaseFontSize: useCallback(
       () => setFontSize((prev) => Math.min(prev + 2, 40)),

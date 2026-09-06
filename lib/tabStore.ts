@@ -1,5 +1,6 @@
 import type { FileData, TabMetadata } from "@/types/editorTypes";
 import { Directory, File, Paths } from "expo-file-system";
+import { loadSettings } from "@/lib/settingsStore";
 
 const TABS_DIR = "tabs";
 const TABS_INDEX = "tabs_index.json";
@@ -69,7 +70,7 @@ export const loadFileContent = (id: string): string => {
   try {
     const file = new File(Paths.document, TABS_DIR, `${id}.txt`);
     if (file.exists) {
-      return file.textSync();
+      return file.textSync().replace(/\r\n/g, "\n").replace(/\r/g, "\n");
     }
   } catch {
     // ignore
@@ -84,7 +85,7 @@ export const saveFileContent = (id: string, content: string): void => {
     if (!file.exists) {
       file.create({ overwrite: true });
     }
-    file.write(content);
+    file.write(content.replace(/\r\n/g, "\n").replace(/\r/g, "\n"));
   } catch {
     // ignore
   }
@@ -165,7 +166,42 @@ export const persistTabs = (files: FileData[]): void => {
   saveMetaData(meta);
 };
 
+export const clearAllTabs = (): void => {
+  try {
+    const ids = loadTabsIndex();
+    for (const id of ids) {
+      deleteFileContent(id);
+    }
+    const indexFile = new File(Paths.document, TABS_INDEX);
+    if (indexFile.exists) indexFile.delete();
+    const metaFile = new File(Paths.document, TABS_META);
+    if (metaFile.exists) metaFile.delete();
+    const activeFile = new File(Paths.document, ACTIVE_TAB_FILE);
+    if (activeFile.exists) activeFile.delete();
+  } catch {
+    // ignore
+  }
+};
+
 export const loadInitialFiles = (): FileData[] => {
+  const settings = loadSettings();
+  if (settings.clearSessionOnRestart) {
+    clearAllTabs();
+    const initialId = generateId();
+    const initialFiles: FileData[] = [
+      {
+        id: initialId,
+        name: "Untitled",
+        content: "",
+        uri: null,
+        isModified: false,
+      },
+    ];
+    persistTabs(initialFiles);
+    saveActiveTabId(initialId);
+    return initialFiles;
+  }
+
   const ids = loadTabsIndex();
   const meta = loadMetaData();
 

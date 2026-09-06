@@ -1,6 +1,27 @@
-import { File, Paths } from "expo-file-system";
-import { pick, saveDocuments } from "@react-native-documents/picker";
 import type { FileResult } from "@/types/editorTypes";
+import { pick, saveDocuments } from "@react-native-documents/picker";
+import { File, Paths } from "expo-file-system";
+
+const extractFileName = (uri: string, fallback: string): string => {
+  try {
+    const decoded = decodeURIComponent(uri);
+    const parts = decoded.split("/");
+    const last = parts[parts.length - 1]?.trim();
+    if (last && !last.includes(":") && last.includes(".")) {
+      return last;
+    }
+    if (last && last.includes(":")) {
+      const colonParts = last.split(":");
+      const afterColon = colonParts[colonParts.length - 1];
+      if (afterColon && afterColon.includes(".")) {
+        return afterColon;
+      }
+    }
+  } catch {
+    // ignore
+  }
+  return fallback;
+};
 
 export const openFile = async (): Promise<FileResult> => {
   try {
@@ -12,46 +33,54 @@ export const openFile = async (): Promise<FileResult> => {
 
     const picked = results[0];
     const file = new File(picked.uri);
-    const content = file.textSync();
+    const rawContent = file.textSync();
+    const content = rawContent.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+    const fileName = picked.name || extractFileName(picked.uri, "Untitled.txt");
 
     return {
       success: true,
       content,
-      fileName: picked.name ?? "Untitled",
+      fileName,
       uri: picked.uri,
     };
-  } catch (error) {
-    console.error("Failed to open file:", error);
+  } catch {
     return { success: false };
   }
 };
 
 export const saveFile = async (
   content: string,
-  fileUri: string
+  fileUri: string,
 ): Promise<FileResult> => {
   try {
     const file = new File(fileUri);
-    file.write(content);
+    file.write(content.replace(/\r\n/g, "\n").replace(/\r/g, "\n"));
     return { success: true };
-  } catch (error) {
-    console.error("Failed to save file:", error);
+  } catch {
     return { success: false };
   }
 };
 
 export const saveFileAs = async (
   content: string,
-  fileName: string
+  fileName: string,
 ): Promise<FileResult> => {
   try {
-    const tempFile = new File(Paths.cache, fileName);
-    tempFile.write(content);
+    const safeName =
+      fileName === "Untitled"
+        ? "Untitled.txt"
+        : fileName.includes(".")
+          ? fileName
+          : `${fileName}.txt`;
+
+    const normalized = content.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+    const tempFile = new File(Paths.cache, safeName);
+    tempFile.write(normalized);
 
     const results = await saveDocuments({
       sourceUris: [tempFile.uri],
       mimeType: "text/plain",
-      fileName,
+      fileName: safeName,
     });
 
     if (!results || results.length === 0) {
@@ -63,9 +92,10 @@ export const saveFileAs = async (
       return { success: false };
     }
 
-    return { success: true, uri: saved.uri };
-  } catch (error) {
-    console.error("Failed to save file:", error);
+    const resolvedName = saved.name || extractFileName(saved.uri, safeName);
+
+    return { success: true, uri: saved.uri, fileName: resolvedName };
+  } catch {
     return { success: false };
   }
 };

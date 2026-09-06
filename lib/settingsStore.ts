@@ -13,6 +13,7 @@ export interface AppSettings {
   showLineNumbers: boolean;
   edgeSpacing: number;
   openKeyboardAtStart: boolean;
+  clearSessionOnRestart: boolean;
 }
 
 const DEFAULTS: AppSettings = {
@@ -24,6 +25,7 @@ const DEFAULTS: AppSettings = {
   showLineNumbers: false,
   edgeSpacing: 2,
   openKeyboardAtStart: false,
+  clearSessionOnRestart: false,
 };
 
 export const loadSettings = (): AppSettings => {

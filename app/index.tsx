@@ -43,7 +43,14 @@ export default function EditorScreen() {
     toggleColorScheme: togglePersisted,
   } = useEditor();
 
+  const [prevActiveFileId, setPrevActiveFileId] = useState(activeFileId);
   const [currentLine, setCurrentLine] = useState(1);
+
+  if (activeFileId !== prevActiveFileId) {
+    setPrevActiveFileId(activeFileId);
+    setCurrentLine(1);
+  }
+
   const handleSelectionChange = useCallback((line: number) => {
     setCurrentLine(line);
   }, []);
@@ -150,6 +157,7 @@ export default function EditorScreen() {
       </View>
 
       <Editor
+        key={activeFileId}
         content={activeFile?.content ?? ""}
         isDark={isDark}
         editable={isEditable}

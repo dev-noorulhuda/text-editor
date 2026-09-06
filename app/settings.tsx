@@ -202,6 +202,23 @@ export default function SettingsScreen() {
             onToggle={() =>
               update("openKeyboardAtStart", !settings.openKeyboardAtStart)
             }
+          />
+
+          <SettingRow
+            icon={
+              <MaterialIcons
+                name="restart-alt"
+                size={22}
+                color={iconColor}
+              />
+            }
+            label="Clear session on restart"
+            description="Start with a fresh empty tab on launch instead of restoring text"
+            isDark={isDark}
+            enabled={settings.clearSessionOnRestart}
+            onToggle={() =>
+              update("clearSessionOnRestart", !settings.clearSessionOnRestart)
+            }
             isLast
           />
         </View>
