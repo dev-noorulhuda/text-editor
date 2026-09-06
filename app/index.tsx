@@ -92,6 +92,7 @@ export default function EditorScreen() {
     isModified: f.isModified,
   }));
 
+  const canCopy = (activeFile?.content?.length ?? 0) > 0;
   const iconColor = isDark ? colors.dark[200] : colors.white[600];
 
   return (
@@ -104,17 +105,19 @@ export default function EditorScreen() {
           isDark ? "bg-dark-600" : "bg-white-200"
         }`}
       >
-        <View className="flex-row items-center gap-2 mr-2 shrink-0">
+        <View className="flex-row items-center gap-1.5 mr-2 shrink min-w-0 max-w-[45%]">
           <Text
-            className={`text-lg font-bold ${
+            numberOfLines={1}
+            ellipsizeMode="middle"
+            className={`text-base font-bold shrink min-w-0 ${
               isDark ? "text-dark-100" : "text-white-900"
             }`}
           >
-            Text Editor
+            {activeFile?.name ?? "Untitled"}
           </Text>
           {isCode && (
             <View
-              className={`px-1.5 py-0.5 rounded ${
+              className={`px-1.5 py-0.5 rounded shrink-0 ${
                 isDark ? "bg-dark-400" : "bg-white-300"
               }`}
             >
@@ -136,6 +139,7 @@ export default function EditorScreen() {
           fontSize={fontSize}
           canUndo={canUndo}
           canRedo={canRedo}
+          canCopy={canCopy}
           copied={copied}
           onToggleEditable={handleToggleEditable}
           onCopyAll={handleCopyAll}

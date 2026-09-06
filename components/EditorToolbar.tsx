@@ -10,6 +10,7 @@ export interface EditorToolbarProps {
   fontSize: number;
   canUndo: boolean;
   canRedo: boolean;
+  canCopy: boolean;
   copied: boolean;
   onToggleEditable: () => void;
   onCopyAll: () => void;
@@ -31,6 +32,7 @@ export const EditorToolbar = ({
   fontSize,
   canUndo,
   canRedo,
+  canCopy,
   copied,
   onToggleEditable,
   onCopyAll,
@@ -70,7 +72,8 @@ export const EditorToolbar = ({
           buzz();
           onCopyAll();
         }}
-        className="p-2"
+        disabled={!canCopy}
+        className={`p-2 ${!canCopy ? "opacity-30" : ""}`}
       >
         <Feather name={copied ? "check" : "copy"} size={18} color={iconColor} />
       </TouchableOpacity>
