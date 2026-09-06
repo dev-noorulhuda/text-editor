@@ -58,7 +58,8 @@ export const Editor = ({
 
   const {
     visualLines,
-    activeVisualRow,
+    highlightTop,
+    currentLineHeight,
     handleTextLayout,
     handleSelectionChange,
     handleChangeText,
@@ -66,6 +67,7 @@ export const Editor = ({
     normalizedContent,
     wordWrap,
     activeLine,
+    lineHeight,
     onSelectionChange: handleSelection,
     onChangeText,
   });
@@ -73,7 +75,7 @@ export const Editor = ({
   const gutterWidth = useMemo(() => {
     const digitCount = Math.max(String(lines.length).length, 1);
     const charWidth = Math.max(Math.ceil((fontSize - 2) * 0.65), 7);
-    return digitCount * charWidth + 8;
+    return digitCount * charWidth + 14;
   }, [lines.length, fontSize]);
 
   const maxLineLength = useMemo(() => {
@@ -89,24 +91,16 @@ export const Editor = ({
     maxLineLength * Math.max(Math.ceil(fontSize * 0.7), 10) + 60;
   const canvasWidth = wordWrap ? "100%" : Math.max(estimatedWidth, 100);
 
-  const currentVisualLine = visualLines[activeVisualRow];
-  const highlightTop =
-    wordWrap && currentVisualLine && currentVisualLine.y !== undefined
-      ? currentVisualLine.y
-      : activeVisualRow * lineHeight;
-  const currentLineHeight =
-    wordWrap && currentVisualLine && currentVisualLine.height !== undefined
-      ? currentVisualLine.height
-      : lineHeight;
-
   const lineHighlightBg = isDark
     ? "rgba(255,255,255,0.07)"
     : "rgba(0,0,0,0.04)";
   const gutterColor = isDark ? colors.dark[300] : colors.white[500];
   const resolvedFont = resolveFontFamily(fontFamily);
 
-  const rowCount =
-    wordWrap && visualLines.length > 0 ? visualLines.length : lines.length;
+  const rowCount = Math.max(
+    wordWrap && visualLines.length > 0 ? visualLines.length : 0,
+    lines.length,
+  );
   const totalHeight = Math.max(rowCount * lineHeight + 24, 200);
   const padLeft = showLineNumbers ? 6 : 0;
 
@@ -122,11 +116,12 @@ export const Editor = ({
       {wordWrap && (
         <Text
           onTextLayout={handleTextLayout}
+          textBreakStrategy="simple"
           style={{
             position: "absolute",
             opacity: 0,
             left: padLeft,
-            right: 0,
+            right: 6,
             fontSize,
             fontFamily: resolvedFont,
             includeFontPadding: false,
@@ -155,13 +150,14 @@ export const Editor = ({
       <TextInput
         key={resolvedFont}
         ref={inputRef}
+        textBreakStrategy="simple"
         style={{
           fontSize,
           lineHeight,
           fontFamily: resolvedFont,
           includeFontPadding: false,
           paddingLeft: padLeft,
-          paddingRight: 0,
+          paddingRight: 6,
           paddingTop: CONTENT_PADDING_TOP,
           paddingBottom: 12,
           backgroundColor: "transparent",

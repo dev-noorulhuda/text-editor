@@ -42,6 +42,7 @@ export const parseVisualLines = (
   nativeLines: TextLayoutLine[],
   content: string,
 ): VisualLineInfo[] => {
+  if (nativeLines.length === 0) return [];
   let logLine = 1;
   let charIdx = 0;
   const parsed: VisualLineInfo[] = [];
@@ -50,57 +51,35 @@ export const parseVisualLines = (
     const line = nativeLines[i];
     if (!line) continue;
 
+    const prevText = i > 0 ? nativeLines[i - 1]?.text || "" : "";
     const isStart =
-      charIdx === 0 || (charIdx > 0 && content[charIdx - 1] === "\n");
+      i === 0 || prevText.endsWith("\n") || prevText.endsWith("\r");
+
     const lineText = line.text || "";
     const start = charIdx;
-    let end = start + lineText.length;
-
-    charIdx = end;
-
-    if (charIdx < content.length && content[charIdx] === "\n") {
-      charIdx++;
-    } else if (
-      charIdx < content.length &&
-      content[charIdx] === "\r" &&
-      content[charIdx + 1] === "\n"
-    ) {
-      charIdx += 2;
-    } else if (
-      charIdx < content.length &&
-      content[charIdx] === " " &&
-      i < nativeLines.length - 1
-    ) {
-      const nextText = nativeLines[i + 1]?.text || "";
-      if (nextText && content.slice(charIdx).startsWith(" " + nextText)) {
-        charIdx++;
-      }
-    }
+    charIdx += lineText.length;
 
     parsed.push({
-      label: isStart ? String(logLine) : "",
+      label: isStart ? String(logLine++) : "",
       start,
       end: charIdx,
       y: line.y,
       height: line.height,
     });
-
-    if (isStart) logLine++;
   }
 
   const totalLogicalLines = content.split("\n").length;
   while (parsed.length < totalLogicalLines) {
     const lastParsed = parsed[parsed.length - 1];
-    const defaultLineHeight = lastParsed?.height ?? 24;
-    const lastY = (lastParsed?.y ?? 0) + (lastParsed ? defaultLineHeight : 0);
+    const defaultHeight = lastParsed?.height ?? 24;
+    const lastY = (lastParsed?.y ?? 0) + (lastParsed ? defaultHeight : 0);
     parsed.push({
-      label: String(logLine),
-      start: content.length,
-      end: content.length,
+      label: String(logLine++),
+      start: charIdx,
+      end: charIdx,
       y: lastY,
-      height: defaultLineHeight,
+      height: defaultHeight,
     });
-    logLine++;
   }
 
   return parsed;

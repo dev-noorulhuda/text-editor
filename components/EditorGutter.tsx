@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { Text, View } from "react-native";
 
 interface EditorGutterProps {
@@ -24,15 +25,38 @@ export const EditorGutter = ({
   paddingTop,
 }: EditorGutterProps) => {
   const isWrapped = wordWrap && visualLines.length > 0;
-  const items = isWrapped
-    ? visualLines.map((v) => ({
-        label: v.label,
-        height: v.height ?? lineHeight,
-      }))
-    : lines.map((_, i) => ({
+
+  const items = useMemo(() => {
+    if (!isWrapped) {
+      return lines.map((_, i) => ({
         label: String(i + 1),
         height: lineHeight,
       }));
+    }
+
+    const result = visualLines.map((v) => ({
+      label: v.label,
+      height: v.height ?? lineHeight,
+    }));
+
+    let maxLogicalLine = 0;
+    for (let i = 0; i < visualLines.length; i++) {
+      const lbl = visualLines[i]?.label;
+      if (lbl) {
+        const num = parseInt(lbl, 10);
+        if (!isNaN(num) && num > maxLogicalLine) maxLogicalLine = num;
+      }
+    }
+
+    for (let l = maxLogicalLine + 1; l <= lines.length; l++) {
+      result.push({
+        label: String(l),
+        height: lineHeight,
+      });
+    }
+
+    return result;
+  }, [isWrapped, lines, visualLines, lineHeight]);
 
   return (
     <View

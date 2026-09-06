@@ -17,6 +17,7 @@ interface UseEditorLayoutProps {
   normalizedContent: string;
   wordWrap: boolean;
   activeLine: number;
+  lineHeight: number;
   onSelectionChange: (line: number) => void;
   onChangeText: (text: string) => void;
 }
@@ -25,6 +26,7 @@ export const useEditorLayout = ({
   normalizedContent,
   wordWrap,
   activeLine,
+  lineHeight,
   onSelectionChange,
   onChangeText,
 }: UseEditorLayoutProps) => {
@@ -67,35 +69,68 @@ export const useEditorLayout = ({
     [onChangeText, onSelectionChange],
   );
 
-  const activeVisualRow = useMemo(() => {
+  const { highlightTop, currentLineHeight } = useMemo(() => {
     if (!wordWrap || visualLines.length === 0) {
-      return Math.max(activeLine, 1) - 1;
+      return {
+        highlightTop: (Math.max(activeLine, 1) - 1) * lineHeight,
+        currentLineHeight: lineHeight,
+      };
     }
-    const targetLabel = String(activeLine);
-    let startRow = -1;
+
+    let matchedRow = -1;
     for (let i = 0; i < visualLines.length; i++) {
-      if (visualLines[i]?.label === targetLabel) {
-        startRow = i;
+      const vl = visualLines[i];
+      if (!vl) continue;
+      if (cursorOffset >= vl.start && cursorOffset < vl.end) {
+        matchedRow = i;
         break;
       }
     }
-    if (startRow === -1) {
-      return Math.max(activeLine, 1) - 1;
-    }
-    let matchedRow = startRow;
-    for (let i = startRow + 1; i < visualLines.length; i++) {
-      const vl = visualLines[i];
-      if (!vl || vl.label !== "") break;
-      if (cursorOffset >= vl.start) {
-        matchedRow = i;
+
+    if (matchedRow === -1 && visualLines.length > 0) {
+      const last = visualLines[visualLines.length - 1];
+      if (last) {
+        let maxLogical = 1;
+        for (let i = visualLines.length - 1; i >= 0; i--) {
+          const lbl = visualLines[i]?.label;
+          if (lbl) {
+            const num = parseInt(lbl, 10);
+            if (!isNaN(num)) {
+              maxLogical = num;
+              break;
+            }
+          }
+        }
+        const lineDiff = Math.max(activeLine - maxLogical, 0);
+        if (lineDiff > 0) {
+          const defaultH = last.height ?? lineHeight;
+          return {
+            highlightTop: (last.y ?? 0) + defaultH * lineDiff,
+            currentLineHeight: defaultH,
+          };
+        }
+        matchedRow = visualLines.length - 1;
       }
     }
-    return matchedRow;
-  }, [wordWrap, visualLines, activeLine, cursorOffset]);
+
+    if (matchedRow !== -1 && visualLines[matchedRow]) {
+      const vl = visualLines[matchedRow]!;
+      return {
+        highlightTop: vl.y ?? matchedRow * lineHeight,
+        currentLineHeight: vl.height ?? lineHeight,
+      };
+    }
+
+    return {
+      highlightTop: (Math.max(activeLine, 1) - 1) * lineHeight,
+      currentLineHeight: lineHeight,
+    };
+  }, [wordWrap, visualLines, activeLine, cursorOffset, lineHeight]);
 
   return {
     visualLines,
-    activeVisualRow,
+    highlightTop,
+    currentLineHeight,
     handleTextLayout,
     handleSelectionChange,
     handleChangeText,
