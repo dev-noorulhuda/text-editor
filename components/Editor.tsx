@@ -1,3 +1,4 @@
+import { EditorCanvas } from "@/components/EditorCanvas";
 import { EditorGutter } from "@/components/EditorGutter";
 import { useEditorLayout } from "@/hooks/useEditorLayout";
 import { useEditorScroll } from "@/hooks/useEditorScroll";
@@ -8,8 +9,13 @@ import {
 } from "@/lib/editorHelpers";
 import { resolveFontFamily } from "@/lib/fontHelpers";
 import type { EditorProps } from "@/types/editorTypes";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { ScrollView, Text, TextInput, View } from "react-native";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  ScrollView,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 export const Editor = ({
   content,
@@ -71,11 +77,17 @@ export const Editor = ({
     onChangeText,
   });
 
-  const { scrollViewRef, keyboardHeight, handleScroll, handleLayout } =
-    useEditorScroll({
-      highlightTop,
-      currentLineHeight,
-    });
+  const {
+    scrollViewRef,
+    keyboardHeight,
+    viewportHeight,
+    viewportWidth,
+    handleScroll,
+    handleLayout,
+  } = useEditorScroll({
+    highlightTop,
+    currentLineHeight,
+  });
 
   const gutterWidth = useMemo(() => {
     const digitCount = Math.max(String(lines.length).length, 1);
@@ -90,11 +102,10 @@ export const Editor = ({
 
   const estimatedWidth =
     maxLineLength * Math.max(Math.ceil(fontSize * 0.7), 10) + 60;
-  const canvasWidth = wordWrap ? "100%" : Math.max(estimatedWidth, 100);
+  const canvasWidth = wordWrap
+    ? "100%"
+    : Math.max(estimatedWidth, viewportWidth);
 
-  const lineHighlightBg = isDark
-    ? "rgba(255,255,255,0.07)"
-    : "rgba(0,0,0,0.04)";
   const gutterColor = isDark ? colors.dark[300] : colors.white[500];
   const resolvedFont = resolveFontFamily(fontFamily);
 
@@ -102,85 +113,34 @@ export const Editor = ({
     wordWrap && visualLines.length > 0 ? visualLines.length : 0,
     lines.length,
   );
-  const totalHeight = Math.max(rowCount * lineHeight + 24, 200);
+  const totalHeight = Math.max(rowCount * lineHeight + 24, viewportHeight);
   const padLeft = showLineNumbers ? 6 : 0;
 
-  const contentBody = (
-    <View
-      style={{
-        minWidth: "100%",
-        width: wordWrap ? "100%" : canvasWidth,
-        minHeight: totalHeight,
-        position: "relative",
-      }}
-    >
-      {wordWrap && (
-        <Text
-          onTextLayout={handleTextLayout}
-          textBreakStrategy="simple"
-          style={{
-            position: "absolute",
-            opacity: 0,
-            left: padLeft,
-            right: 6,
-            fontSize,
-            fontFamily: resolvedFont,
-            includeFontPadding: false,
-            lineHeight,
-            pointerEvents: "none",
-          }}
-        >
-          {normalizedContent.endsWith("\n")
-            ? `${normalizedContent} `
-            : normalizedContent}
-        </Text>
-      )}
-      {highlightLine && (
-        <View
-          style={{
-            position: "absolute",
-            left: 0,
-            right: 0,
-            top: highlightTop + CONTENT_PADDING_TOP,
-            height: currentLineHeight,
-            backgroundColor: lineHighlightBg,
-            pointerEvents: "none",
-          }}
-        />
-      )}
-      <TextInput
-        key={resolvedFont}
-        ref={inputRef}
-        textBreakStrategy="simple"
-        style={{
-          fontSize,
-          lineHeight,
-          fontFamily: resolvedFont,
-          includeFontPadding: false,
-          paddingLeft: padLeft,
-          paddingRight: 6,
-          paddingTop: CONTENT_PADDING_TOP,
-          paddingBottom: 12,
-          backgroundColor: "transparent",
-          color: isDark ? colors.dark[50] : colors.white[900],
-          minHeight: totalHeight,
-          width: "100%",
-          textAlignVertical: "top",
-        }}
-        multiline
-        scrollEnabled={false}
-        value={normalizedContent}
-        onChangeText={editable ? handleChangeText : undefined}
-        onSelectionChange={handleSelectionChange}
-        placeholder="Start typing..."
-        placeholderTextColor={isDark ? colors.dark[300] : colors.white[500]}
-        textAlignVertical="top"
-        underlineColorAndroid="transparent"
-        autoCapitalize="none"
-        autoCorrect={false}
-        showSoftInputOnFocus={editable}
-      />
-    </View>
+  const focusInput = useCallback(() => {
+    if (editable) inputRef.current?.focus();
+  }, [editable]);
+
+  const canvasElement = (
+    <EditorCanvas
+      ref={inputRef}
+      editable={editable}
+      fontSize={fontSize}
+      lineHeight={lineHeight}
+      resolvedFont={resolvedFont}
+      isDark={isDark}
+      padLeft={padLeft}
+      wordWrap={wordWrap}
+      canvasWidth={canvasWidth}
+      totalHeight={totalHeight}
+      highlightLine={highlightLine}
+      highlightTop={highlightTop}
+      currentLineHeight={currentLineHeight}
+      normalizedContent={normalizedContent}
+      handleTextLayout={handleTextLayout}
+      handleChangeText={handleChangeText}
+      handleSelectionChange={handleSelectionChange}
+      onTapBlank={focusInput}
+    />
   );
 
   const horizontalPadding = showLineNumbers
@@ -195,6 +155,7 @@ export const Editor = ({
       scrollEventThrottle={16}
       style={{ flex: 1, marginBottom: keyboardHeight }}
       contentContainerStyle={{
+        flexGrow: 1,
         minHeight: "100%",
         paddingBottom: 24,
       }}
@@ -202,39 +163,50 @@ export const Editor = ({
       showsVerticalScrollIndicator
     >
       <View
+        onTouchEnd={(e) => {
+          if (editable && e.target === e.currentTarget) {
+            focusInput();
+          }
+        }}
         style={{
           flexDirection: "row",
+          flex: 1,
           minHeight: totalHeight,
           paddingLeft: horizontalPadding,
           paddingRight: horizontalPadding,
         }}
       >
         {showLineNumbers && (
-          <EditorGutter
-            lines={lines}
-            visualLines={visualLines}
-            wordWrap={wordWrap}
-            gutterWidth={gutterWidth}
-            lineHeight={lineHeight}
-            fontSize={fontSize}
-            gutterColor={gutterColor}
-            resolvedFont={resolvedFont}
-            paddingTop={CONTENT_PADDING_TOP}
-          />
+          <TouchableOpacity activeOpacity={1} onPress={focusInput}>
+            <EditorGutter
+              lines={lines}
+              visualLines={visualLines}
+              wordWrap={wordWrap}
+              gutterWidth={gutterWidth}
+              lineHeight={lineHeight}
+              fontSize={fontSize}
+              gutterColor={gutterColor}
+              resolvedFont={resolvedFont}
+              paddingTop={CONTENT_PADDING_TOP}
+            />
+          </TouchableOpacity>
         )}
 
         {wordWrap ? (
-          <View className="flex-1">
-            {contentBody}
-          </View>
+          <View className="flex-1">{canvasElement}</View>
         ) : (
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
             className="flex-1"
+            contentContainerStyle={{
+              flexGrow: 1,
+              minWidth: "100%",
+              minHeight: totalHeight,
+            }}
             keyboardShouldPersistTaps="handled"
           >
-            {contentBody}
+            {canvasElement}
           </ScrollView>
         )}
       </View>

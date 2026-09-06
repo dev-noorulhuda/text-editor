@@ -1,6 +1,7 @@
 import { CONTENT_PADDING_TOP } from "@/lib/editorHelpers";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
+  Dimensions,
   Keyboard,
   Platform,
   type LayoutChangeEvent,
@@ -20,6 +21,12 @@ export const useEditorScroll = ({
 }: UseEditorScrollProps) => {
   const scrollViewRef = useRef<ScrollView>(null);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const [viewportHeight, setViewportHeight] = useState(
+    () => Dimensions.get("window").height,
+  );
+  const [viewportWidth, setViewportWidth] = useState(
+    () => Dimensions.get("window").width,
+  );
   const scrollYRef = useRef(0);
   const layoutHeightRef = useRef(0);
 
@@ -72,7 +79,10 @@ export const useEditorScroll = ({
 
   const handleLayout = useCallback(
     (e: LayoutChangeEvent) => {
-      layoutHeightRef.current = e.nativeEvent.layout.height;
+      const { height, width } = e.nativeEvent.layout;
+      layoutHeightRef.current = height;
+      if (height > 0) setViewportHeight(height);
+      if (width > 0) setViewportWidth(width);
     },
     [],
   );
@@ -80,6 +90,8 @@ export const useEditorScroll = ({
   return {
     scrollViewRef,
     keyboardHeight,
+    viewportHeight,
+    viewportWidth,
     handleScroll,
     handleLayout,
   };
