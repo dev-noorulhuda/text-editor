@@ -1,3 +1,4 @@
+import { AboutSettingsCard } from "@/components/AboutSettingsCard";
 import { EdgeSpacingModal } from "@/components/EdgeSpacingModal";
 import { FontFamilyModal } from "@/components/FontFamilyModal";
 import { FontSettingsCard } from "@/components/FontSettingsCard";
@@ -198,6 +199,9 @@ export default function SettingsScreen() {
             isLast
           />
         </View>
+
+        {/* Section 4: About */}
+        <AboutSettingsCard isDark={isDark} />
       </ScrollView>
 
       {/* Edge Spacing Modal */}
