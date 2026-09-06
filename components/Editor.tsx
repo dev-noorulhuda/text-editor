@@ -28,6 +28,12 @@ export const Editor = ({
   const lineHeight = Math.round(fontSize * LINE_HEIGHT_RATIO);
   const inputRef = useRef<TextInput>(null);
   const [activeLine, setActiveLine] = useState(currentLine);
+  const [prevCurrentLine, setPrevCurrentLine] = useState(currentLine);
+
+  if (currentLine !== prevCurrentLine) {
+    setPrevCurrentLine(currentLine);
+    setActiveLine(currentLine);
+  }
 
   const normalizedContent = useMemo(
     () => content.replace(/\r\n/g, "\n").replace(/\r/g, "\n"),
@@ -84,7 +90,16 @@ export const Editor = ({
     maxLineLength * Math.max(Math.ceil(fontSize * 0.7), 10) + 60;
   const canvasWidth = wordWrap ? "100%" : Math.max(estimatedWidth, 100);
 
-  const highlightTop = activeVisualRow * lineHeight;
+  const currentVisualLine = visualLines[activeVisualRow];
+  const highlightTop =
+    wordWrap && currentVisualLine && currentVisualLine.y !== undefined
+      ? currentVisualLine.y
+      : activeVisualRow * lineHeight;
+  const currentLineHeight =
+    wordWrap && currentVisualLine && currentVisualLine.height !== undefined
+      ? currentVisualLine.height
+      : lineHeight;
+
   const lineHighlightBg = isDark
     ? "rgba(255,255,255,0.07)"
     : "rgba(0,0,0,0.04)";
@@ -120,7 +135,9 @@ export const Editor = ({
             pointerEvents: "none",
           }}
         >
-          {normalizedContent}
+          {normalizedContent.endsWith("\n")
+            ? `${normalizedContent} `
+            : normalizedContent}
         </Text>
       )}
       {highlightLine && (
@@ -130,7 +147,7 @@ export const Editor = ({
             left: 0,
             right: 0,
             top: highlightTop + CONTENT_PADDING_TOP,
-            height: lineHeight,
+            height: currentLineHeight,
             backgroundColor: lineHighlightBg,
             pointerEvents: "none",
           }}
@@ -152,6 +169,7 @@ export const Editor = ({
           color: isDark ? colors.dark[50] : colors.white[900],
           minHeight: totalHeight,
           width: "100%",
+          textAlignVertical: "top",
         }}
         multiline
         scrollEnabled={false}
@@ -161,12 +179,17 @@ export const Editor = ({
         placeholder="Start typing..."
         placeholderTextColor={isDark ? colors.dark[300] : colors.white[500]}
         textAlignVertical="top"
+        underlineColorAndroid="transparent"
         autoCapitalize="none"
         autoCorrect={false}
         editable={editable}
       />
     </View>
   );
+
+  const horizontalPadding = showLineNumbers
+    ? (edgeSpacing ?? 0)
+    : Math.max(edgeSpacing ?? 0, 12);
 
   return (
     <ScrollView
@@ -179,8 +202,8 @@ export const Editor = ({
         style={{
           flexDirection: "row",
           minHeight: totalHeight,
-          paddingLeft: edgeSpacing ?? 0,
-          paddingRight: edgeSpacing ?? 0,
+          paddingLeft: horizontalPadding,
+          paddingRight: horizontalPadding,
         }}
       >
         {showLineNumbers && (

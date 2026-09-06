@@ -2,7 +2,7 @@ import { Text, View } from "react-native";
 
 interface EditorGutterProps {
   lines: string[];
-  visualLines: { label: string }[];
+  visualLines: { label: string; height?: number }[];
   wordWrap: boolean;
   gutterWidth: number;
   lineHeight: number;
@@ -25,8 +25,14 @@ export const EditorGutter = ({
 }: EditorGutterProps) => {
   const isWrapped = wordWrap && visualLines.length > 0;
   const items = isWrapped
-    ? visualLines.map((v) => v.label)
-    : lines.map((_, i) => String(i + 1));
+    ? visualLines.map((v) => ({
+        label: v.label,
+        height: v.height ?? lineHeight,
+      }))
+    : lines.map((_, i) => ({
+        label: String(i + 1),
+        height: lineHeight,
+      }));
 
   return (
     <View
@@ -35,26 +41,28 @@ export const EditorGutter = ({
         paddingTop,
         paddingBottom: 12,
         paddingLeft: 2,
-        paddingRight: 6,
+        paddingRight: 4,
         alignItems: "flex-end",
       }}
     >
-      {items.map((label, i) => (
+      {items.map((item, i) => (
         <Text
           key={i}
           numberOfLines={1}
+          ellipsizeMode="clip"
           style={{
             fontSize: fontSize - 2,
-            height: lineHeight,
-            lineHeight,
+            height: item.height,
+            lineHeight: item.height,
             color: gutterColor,
             textAlign: "right",
             width: "100%",
             fontFamily: resolvedFont,
             includeFontPadding: false,
+            flexShrink: 0,
           }}
         >
-          {label}
+          {item.label}
         </Text>
       ))}
     </View>

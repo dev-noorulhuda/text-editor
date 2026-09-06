@@ -5,7 +5,7 @@ import {
   type TextLayoutLine,
   type VisualLineInfo,
 } from "@/lib/editorHelpers";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import type {
   NativeSyntheticEvent,
   TextInputSelectionChangeEvent,
@@ -30,6 +30,9 @@ export const useEditorLayout = ({
   onSelectionChange,
   onChangeText,
 }: UseEditorLayoutProps) => {
+  const contentRef = useRef(normalizedContent);
+  contentRef.current = normalizedContent;
+
   const [cursorOffset, setCursorOffset] = useState(0);
   const [visualLines, setVisualLines] = useState<VisualLineInfo[]>([]);
 
@@ -37,32 +40,33 @@ export const useEditorLayout = ({
     (e: TextLayoutEvent) => {
       const nLines = e.nativeEvent.lines;
       if (nLines && nLines.length > 0) {
-        setVisualLines(parseVisualLines(nLines, normalizedContent));
+        setVisualLines(parseVisualLines(nLines, contentRef.current));
       }
     },
-    [normalizedContent],
+    [],
   );
 
   const handleSelectionChange = useCallback(
     (e: TextInputSelectionChangeEvent) => {
       const { start } = e.nativeEvent.selection;
       setCursorOffset(start);
-      const line = getLineFromOffset(normalizedContent, start);
+      const line = getLineFromOffset(contentRef.current, start);
       onSelectionChange(line);
     },
-    [normalizedContent, onSelectionChange],
+    [onSelectionChange],
   );
 
   const handleChangeText = useCallback(
     (text: string) => {
       const normalized = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
-      const cursor = getEstimatedCursor(normalizedContent, normalized);
+      const cursor = getEstimatedCursor(contentRef.current, normalized);
+      contentRef.current = normalized;
       setCursorOffset(cursor);
       const line = getLineFromOffset(normalized, cursor);
       onSelectionChange(line);
       onChangeText(normalized);
     },
-    [normalizedContent, onChangeText, onSelectionChange],
+    [onChangeText, onSelectionChange],
   );
 
   const activeVisualRow = useMemo(() => {
@@ -81,10 +85,9 @@ export const useEditorLayout = ({
       return Math.min(Math.max(activeLine, 1), lines.length) - 1;
     }
     let matchedRow = startRow;
-    for (let i = startRow; i < visualLines.length; i++) {
+    for (let i = startRow + 1; i < visualLines.length; i++) {
       const vl = visualLines[i];
-      if (!vl) break;
-      if (i > startRow && vl.label !== "") break;
+      if (!vl || vl.label !== "") break;
       if (cursorOffset >= vl.start) {
         matchedRow = i;
       }
