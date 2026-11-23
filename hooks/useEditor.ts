@@ -1,9 +1,16 @@
 import { useEditorHistory } from "@/hooks/useEditorHistory";
 import { useEditorSettings } from "@/hooks/useEditorSettings";
-import { getTabsAfterClose, saveAndCloseFile } from "@/lib/editorAlerts";
-import { openFile, saveFile, saveFileAs } from "@/lib/fileHelpers";
+import { useIncomingFile } from "@/hooks/useIncomingFile";
+import { useTabClose } from "@/hooks/useTabClose";
+import { mergeOpenedFile } from "@/lib/editorAlerts";
 import {
-  deleteFileContent,
+  openFile,
+  openFileFromUri,
+  saveFile,
+  saveFileAs,
+} from "@/lib/fileHelpers";
+import { renameFileOnDisk } from "@/lib/filePathUtils";
+import {
   generateId,
   loadActiveTabId,
   loadInitialFiles,
@@ -11,9 +18,11 @@ import {
   saveActiveTabId,
   saveFileContent,
 } from "@/lib/tabStore";
-import type { FileData } from "@/types/editorTypes";
+import type { FileData, FileResult } from "@/types/editorTypes";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AppState, type AppStateStatus } from "react-native";
+
+export type SaveOutcome = "saved" | "saved_as" | "cancelled";
 
 export const useEditor = () => {
   const [files, setFiles] = useState<FileData[]>(loadInitialFiles);
@@ -38,36 +47,76 @@ export const useEditor = () => {
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
+    const flushActive = () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+        saveTimeoutRef.current = null;
+      }
+      if (activeFileRef.current) {
+        saveFileContent(
+          activeFileRef.current.id,
+          activeFileRef.current.content,
+        );
+      }
+    };
+
     const subscription = AppState.addEventListener(
       "change",
       (status: AppStateStatus) => {
         if (status === "background" || status === "inactive") {
-          if (saveTimeoutRef.current) {
-            clearTimeout(saveTimeoutRef.current);
-            saveTimeoutRef.current = null;
-          }
-          if (activeFileRef.current) {
-            saveFileContent(activeFileRef.current.id, activeFileRef.current.content);
-          }
+          flushActive();
         }
       },
     );
 
     return () => {
       subscription.remove();
-      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
-      if (activeFileRef.current) {
-        saveFileContent(activeFileRef.current.id, activeFileRef.current.content);
-      }
+      flushActive();
     };
   }, []);
 
   const updateFile = useCallback((id: string, updates: Partial<FileData>) => {
-    setFiles((prev) => prev.map((f) => (f.id === id ? { ...f, ...updates } : f)));
+    setFiles((prev) =>
+      prev.map((f) => (f.id === id ? { ...f, ...updates } : f)),
+    );
   }, []);
 
   const { canUndo, canRedo, recordChange, handleUndo, handleRedo } =
     useEditorHistory(activeFile, updateFile, saveFileContent);
+
+  const applyOpenedFile = useCallback(
+    (result: FileResult) => {
+      if (!result.success || result.content === undefined) return;
+      let targetId = "";
+      let contentToSave = result.content;
+
+      setFiles((prev) => {
+        const merged = mergeOpenedFile(prev, result);
+        targetId = merged.targetId;
+        contentToSave = merged.content;
+        persistTabs(merged.updated);
+        return merged.updated;
+      });
+
+      if (targetId) {
+        setActiveFileId(targetId);
+        saveFileContent(targetId, contentToSave);
+      }
+    },
+    [setActiveFileId],
+  );
+
+  const handleOpenUri = useCallback(
+    async (uri: string) => {
+      const result = await openFileFromUri(uri);
+      applyOpenedFile(result);
+    },
+    [applyOpenedFile],
+  );
+
+  useIncomingFile((uri) => {
+    void handleOpenUri(uri);
+  });
 
   const handleContentChange = useCallback(
     (text: string) => {
@@ -77,7 +126,10 @@ export const useEditor = () => {
 
       if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
       const fileId = activeFile.id;
-      saveTimeoutRef.current = setTimeout(() => saveFileContent(fileId, text), 300);
+      saveTimeoutRef.current = setTimeout(
+        () => saveFileContent(fileId, text),
+        300,
+      );
     },
     [activeFile, recordChange, updateFile],
   );
@@ -103,135 +155,89 @@ export const useEditor = () => {
 
   const handleOpen = useCallback(async () => {
     const result = await openFile();
-    if (result.success && result.content !== undefined) {
-      const newId = generateId();
-      const newFile: FileData = {
-        id: newId,
-        name: result.fileName ?? "Untitled",
-        content: result.content,
-        uri: result.uri ?? null,
-        isModified: false,
-      };
+    applyOpenedFile(result);
+  }, [applyOpenedFile]);
 
-      setFiles((prev) => {
-        const updated = [...prev, newFile];
-        persistTabs(updated);
-        return updated;
-      });
-      setActiveFileId(newId);
-      saveFileContent(newId, result.content);
-    }
-  }, [setActiveFileId]);
+  const handleRename = useCallback((newName: string): boolean => {
+    const target = activeFileRef.current;
+    if (!target) return false;
+    const renamed = renameFileOnDisk(target.uri, newName);
+    if (!renamed.success) return false;
 
-  const handleSaveAs = useCallback(async () => {
-    if (!activeFile) return;
+    setFiles((prev) => {
+      const updated = prev.map((f) =>
+        f.id === target.id
+          ? { ...f, name: renamed.name, uri: renamed.uri }
+          : f,
+      );
+      persistTabs(updated);
+      return updated;
+    });
+    return true;
+  }, []);
 
-    const result = await saveFileAs(activeFile.content, activeFile.name);
+  const handleSaveAs = useCallback(async (): Promise<SaveOutcome> => {
+    const target = activeFileRef.current;
+    if (!target) return "cancelled";
+
+    const result = await saveFileAs(target.content, target.name);
     if (result.success && result.uri) {
-      const newName = result.fileName ?? activeFile.name;
+      const newName = result.fileName ?? target.name;
+      saveFileContent(target.id, target.content);
       setFiles((prev) => {
         const updated = prev.map((f) =>
-          f.id === activeFile.id
+          f.id === target.id
             ? { ...f, uri: result.uri!, name: newName, isModified: false }
             : f,
         );
         persistTabs(updated);
         return updated;
       });
+      return "saved_as";
     }
-  }, [activeFile]);
+    return "cancelled";
+  }, []);
 
-  const handleSave = useCallback(async () => {
-    if (!activeFile) return;
+  const handleSave = useCallback(async (): Promise<SaveOutcome> => {
+    const target = activeFileRef.current;
+    if (!target) return "cancelled";
 
-    if (activeFile.uri) {
-      const result = await saveFile(activeFile.content, activeFile.uri);
+    if (target.uri) {
+      const result = await saveFile(target.content, target.uri);
       if (result.success) {
+        saveFileContent(target.id, target.content);
         setFiles((prev) => {
           const updated = prev.map((f) =>
-            f.id === activeFile.id ? { ...f, isModified: false } : f,
+            f.id === target.id ? { ...f, isModified: false } : f,
           );
           persistTabs(updated);
           return updated;
         });
-        return;
+        return "saved";
       }
     }
 
-    await handleSaveAs();
-  }, [activeFile, handleSaveAs]);
+    return await handleSaveAs();
+  }, [handleSaveAs]);
 
-  const performClose = useCallback(
-    (id: string) => {
-      deleteFileContent(id);
-      setFiles((prev) => {
-        const { updated, nextActiveId } = getTabsAfterClose(
-          prev,
-          id,
-          activeFileId,
-        );
-        persistTabs(updated);
-        if (nextActiveId) {
-          setActiveFileId(nextActiveId);
-          if (updated.length === 1 && updated[0]?.id === nextActiveId) {
-            saveFileContent(nextActiveId, "");
-          }
-        }
-        return updated;
-      });
-    },
-    [activeFileId, setActiveFileId],
-  );
-
-  const [closingFile, setClosingFile] = useState<FileData | null>(null);
-
-  const handleClose = useCallback(
-    (id: string) => {
-      const target = files.find((f) => f.id === id);
-      if (!target) return;
-      if (!target.isModified) {
-        performClose(id);
-        return;
-      }
-      setClosingFile(target);
-    },
-    [files, performClose],
-  );
-
-  const handleDiscardClose = useCallback(() => {
-    if (!closingFile) return;
-    const id = closingFile.id;
-    setClosingFile(null);
-    performClose(id);
-  }, [closingFile, performClose]);
-
-  const handleSaveClose = useCallback(async () => {
-    if (!closingFile) return;
-    const ok = await saveAndCloseFile(closingFile, performClose);
-    if (ok) setClosingFile(null);
-  }, [closingFile, performClose]);
-
-  const handleCancelClose = useCallback(() => setClosingFile(null), []);
+  const tabClose = useTabClose(files, activeFileId, setFiles, setActiveFileId);
 
   return {
     activeFile,
     activeFileId,
     files,
-    closingFile,
     canUndo,
     canRedo,
     ...settings,
+    ...tabClose,
     handleContentChange,
     handleNew,
     handleOpen,
+    handleRename,
     handleSave,
     handleSaveAs,
     handleUndo,
     handleRedo,
-    handleClose,
-    handleDiscardClose,
-    handleSaveClose,
-    handleCancelClose,
     setActiveFileId,
   };
 };

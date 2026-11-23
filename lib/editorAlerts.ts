@@ -1,6 +1,6 @@
 import { saveFile, saveFileAs } from "@/lib/fileHelpers";
-import { generateId } from "@/lib/tabStore";
-import type { FileData } from "@/types/editorTypes";
+import { deleteFileContent, generateId } from "@/lib/tabStore";
+import type { FileData, FileResult } from "@/types/editorTypes";
 
 export const getTabsAfterClose = (
   prev: FileData[],
@@ -37,6 +37,51 @@ export const getTabsAfterClose = (
   return { updated, nextActiveId };
 };
 
+export const mergeOpenedFile = (
+  prev: FileData[],
+  result: FileResult,
+): { updated: FileData[]; targetId: string; content: string } => {
+  const content = result.content ?? "";
+  const uri = result.uri ?? null;
+  const name = result.fileName ?? "Untitled";
+
+  if (uri) {
+    const existing = prev.find((f) => f.uri === uri);
+    if (existing) {
+      const updated = prev.map((f) =>
+        f.id === existing.id && !f.isModified ? { ...f, content, name } : f,
+      );
+      return {
+        updated,
+        targetId: existing.id,
+        content: existing.isModified ? existing.content : content,
+      };
+    }
+  }
+
+  const newId = generateId();
+  const newFile: FileData = {
+    id: newId,
+    name,
+    content,
+    uri,
+    isModified: false,
+  };
+
+  const onlyTab = prev.length === 1 ? prev[0] : undefined;
+  if (
+    onlyTab &&
+    !onlyTab.uri &&
+    !onlyTab.isModified &&
+    onlyTab.content === ""
+  ) {
+    deleteFileContent(onlyTab.id);
+    return { updated: [newFile], targetId: newId, content };
+  }
+
+  return { updated: [...prev, newFile], targetId: newId, content };
+};
+
 export const saveAndCloseFile = async (
   target: FileData,
   onClose: (id: string) => void,
@@ -47,12 +92,12 @@ export const saveAndCloseFile = async (
       onClose(target.id);
       return true;
     }
-  } else {
-    const res = await saveFileAs(target.content, target.name);
-    if (res.success) {
-      onClose(target.id);
-      return true;
-    }
+  }
+
+  const res = await saveFileAs(target.content, target.name);
+  if (res.success) {
+    onClose(target.id);
+    return true;
   }
   return false;
 };

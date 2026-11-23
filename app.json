@@ -23,6 +23,92 @@
         "android.permission.WRITE_EXTERNAL_STORAGE",
         "android.permission.INTERNET"
       ],
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "category": ["DEFAULT", "BROWSABLE"],
+          "data": [
+            { "scheme": "content", "mimeType": "text/*" },
+            { "scheme": "file", "mimeType": "text/*" },
+            { "scheme": "content", "mimeType": "application/json" },
+            { "scheme": "file", "mimeType": "application/json" },
+            { "scheme": "content", "mimeType": "application/javascript" },
+            { "scheme": "file", "mimeType": "application/javascript" },
+            { "scheme": "content", "mimeType": "application/typescript" },
+            { "scheme": "file", "mimeType": "application/typescript" },
+            { "scheme": "content", "mimeType": "application/xml" },
+            { "scheme": "file", "mimeType": "application/xml" },
+            { "scheme": "content", "mimeType": "application/x-yaml" },
+            { "scheme": "file", "mimeType": "application/x-yaml" },
+            { "scheme": "content", "mimeType": "application/toml" },
+            { "scheme": "file", "mimeType": "application/toml" },
+            { "scheme": "content", "mimeType": "application/sql" },
+            { "scheme": "file", "mimeType": "application/sql" },
+            { "scheme": "content", "mimeType": "application/x-sh" },
+            { "scheme": "file", "mimeType": "application/x-sh" }
+          ]
+        },
+        {
+          "action": "VIEW",
+          "category": ["DEFAULT", "BROWSABLE"],
+          "data": [
+            { "scheme": "content", "host": "*", "mimeType": "*/*", "pathPattern": "/.*\\.txt" },
+            { "scheme": "file", "host": "*", "mimeType": "*/*", "pathPattern": "/.*\\.txt" },
+            { "scheme": "content", "host": "*", "mimeType": "*/*", "pathPattern": "/.*\\.md" },
+            { "scheme": "file", "host": "*", "mimeType": "*/*", "pathPattern": "/.*\\.md" },
+            { "scheme": "content", "host": "*", "mimeType": "*/*", "pathPattern": "/.*\\.log" },
+            { "scheme": "file", "host": "*", "mimeType": "*/*", "pathPattern": "/.*\\.log" },
+            { "scheme": "content", "host": "*", "mimeType": "*/*", "pathPattern": "/.*\\.csv" },
+            { "scheme": "file", "host": "*", "mimeType": "*/*", "pathPattern": "/.*\\.csv" },
+            { "scheme": "content", "host": "*", "mimeType": "*/*", "pathPattern": "/.*\\.json" },
+            { "scheme": "file", "host": "*", "mimeType": "*/*", "pathPattern": "/.*\\.json" },
+            { "scheme": "content", "host": "*", "mimeType": "*/*", "pathPattern": "/.*\\.js" },
+            { "scheme": "file", "host": "*", "mimeType": "*/*", "pathPattern": "/.*\\.js" },
+            { "scheme": "content", "host": "*", "mimeType": "*/*", "pathPattern": "/.*\\.ts" },
+            { "scheme": "file", "host": "*", "mimeType": "*/*", "pathPattern": "/.*\\.ts" },
+            { "scheme": "content", "host": "*", "mimeType": "*/*", "pathPattern": "/.*\\.tsx" },
+            { "scheme": "file", "host": "*", "mimeType": "*/*", "pathPattern": "/.*\\.tsx" },
+            { "scheme": "content", "host": "*", "mimeType": "*/*", "pathPattern": "/.*\\.jsx" },
+            { "scheme": "file", "host": "*", "mimeType": "*/*", "pathPattern": "/.*\\.jsx" },
+            { "scheme": "content", "host": "*", "mimeType": "*/*", "pathPattern": "/.*\\.py" },
+            { "scheme": "file", "host": "*", "mimeType": "*/*", "pathPattern": "/.*\\.py" },
+            { "scheme": "content", "host": "*", "mimeType": "*/*", "pathPattern": "/.*\\.html" },
+            { "scheme": "file", "host": "*", "mimeType": "*/*", "pathPattern": "/.*\\.html" },
+            { "scheme": "content", "host": "*", "mimeType": "*/*", "pathPattern": "/.*\\.css" },
+            { "scheme": "file", "host": "*", "mimeType": "*/*", "pathPattern": "/.*\\.css" },
+            { "scheme": "content", "host": "*", "mimeType": "*/*", "pathPattern": "/.*\\.xml" },
+            { "scheme": "file", "host": "*", "mimeType": "*/*", "pathPattern": "/.*\\.xml" },
+            { "scheme": "content", "host": "*", "mimeType": "*/*", "pathPattern": "/.*\\.yaml" },
+            { "scheme": "file", "host": "*", "mimeType": "*/*", "pathPattern": "/.*\\.yaml" },
+            { "scheme": "content", "host": "*", "mimeType": "*/*", "pathPattern": "/.*\\.yml" },
+            { "scheme": "file", "host": "*", "mimeType": "*/*", "pathPattern": "/.*\\.yml" },
+            { "scheme": "content", "host": "*", "mimeType": "*/*", "pathPattern": "/.*\\.ini" },
+            { "scheme": "file", "host": "*", "mimeType": "*/*", "pathPattern": "/.*\\.ini" },
+            { "scheme": "content", "host": "*", "mimeType": "*/*", "pathPattern": "/.*\\.conf" },
+            { "scheme": "file", "host": "*", "mimeType": "*/*", "pathPattern": "/.*\\.conf" },
+            { "scheme": "content", "host": "*", "mimeType": "*/*", "pathPattern": "/.*\\.env" },
+            { "scheme": "file", "host": "*", "mimeType": "*/*", "pathPattern": "/.*\\.env" },
+            { "scheme": "content", "host": "*", "mimeType": "*/*", "pathPattern": "/.*\\.sh" },
+            { "scheme": "file", "host": "*", "mimeType": "*/*", "pathPattern": "/.*\\.sh" },
+            { "scheme": "content", "host": "*", "mimeType": "*/*", "pathPattern": "/.*\\.sql" },
+            { "scheme": "file", "host": "*", "mimeType": "*/*", "pathPattern": "/.*\\.sql" }
+          ]
+        },
+        {
+          "action": "EDIT",
+          "category": ["DEFAULT"],
+          "data": [
+            { "scheme": "content", "mimeType": "text/*" },
+            { "scheme": "file", "mimeType": "text/*" },
+            { "scheme": "content", "mimeType": "application/json" },
+            { "scheme": "file", "mimeType": "application/json" },
+            { "scheme": "content", "mimeType": "application/javascript" },
+            { "scheme": "file", "mimeType": "application/javascript" },
+            { "scheme": "content", "mimeType": "application/xml" },
+            { "scheme": "file", "mimeType": "application/xml" }
+          ]
+        }
+      ],
       "package": "com.norvexiq.texteditor"
     },
     "web": {

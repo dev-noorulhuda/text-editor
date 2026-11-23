@@ -1,5 +1,6 @@
 import { EditorCanvas } from "@/components/EditorCanvas";
 import { EditorGutter } from "@/components/EditorGutter";
+import { LinkBanner } from "@/components/LinkBanner";
 import { useEditorLayout } from "@/hooks/useEditorLayout";
 import { useEditorScroll } from "@/hooks/useEditorScroll";
 import { colors } from "@/lib/colors";
@@ -37,6 +38,7 @@ export const Editor = ({
   const lineHeight = Math.round(fontSize * LINE_HEIGHT_RATIO);
   const inputRef = useRef<TextInputInstance>(null);
   const [activeLine, setActiveLine] = useState(currentLine);
+  const [activeLinkUrl, setActiveLinkUrl] = useState<string | null>(null);
 
   if (currentLine !== activeLine) {
     setActiveLine(currentLine);
@@ -160,71 +162,80 @@ export const Editor = ({
       handleTextLayout={handleTextLayout}
       handleChangeText={handleChangeText}
       handleSelectionChange={handleSelectionChange}
+      onActiveLinkChange={setActiveLinkUrl}
       onTapBlank={focusInput}
       onReadOnlyNotice={onReadOnlyNotice}
     />
   );
 
   return (
-    <ScrollView
-      ref={scrollViewRef}
-      onScroll={handleScroll}
-      onLayout={handleLayout}
-      scrollEventThrottle={16}
-      style={{ flex: 1, marginBottom: keyboardHeight }}
-      contentContainerStyle={{
-        flexGrow: 1,
-      }}
-      keyboardShouldPersistTaps="handled"
-      showsVerticalScrollIndicator
-    >
-      <View
-        onTouchEnd={(e) => {
-          if (editable && e.target === e.currentTarget) {
-            focusInput();
-          }
+    <View className="flex-1">
+      <ScrollView
+        ref={scrollViewRef}
+        onScroll={handleScroll}
+        onLayout={handleLayout}
+        scrollEventThrottle={16}
+        style={{ flex: 1, marginBottom: keyboardHeight }}
+        contentContainerStyle={{
+          flexGrow: 1,
         }}
-        style={{
-          flexDirection: "row",
-          flex: 1,
-          minHeight: totalHeight,
-          paddingLeft: horizontalPadding,
-          paddingRight: horizontalPadding,
-        }}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator
       >
-        {showLineNumbers && (
-          <TouchableOpacity activeOpacity={1} onPress={focusInput}>
-            <EditorGutter
-              lines={lines}
-              visualLines={visualLines}
-              wordWrap={wordWrap}
-              gutterWidth={gutterWidth}
-              lineHeight={lineHeight}
-              fontSize={fontSize}
-              gutterColor={gutterColor}
-              resolvedFont={resolvedFont}
-              paddingTop={CONTENT_PADDING_TOP}
-            />
-          </TouchableOpacity>
-        )}
+        <View
+          onTouchEnd={(e) => {
+            if (editable && e.target === e.currentTarget) {
+              focusInput();
+            }
+          }}
+          style={{
+            flexDirection: "row",
+            flex: 1,
+            minHeight: totalHeight,
+            paddingLeft: horizontalPadding,
+            paddingRight: horizontalPadding,
+          }}
+        >
+          {showLineNumbers && (
+            <TouchableOpacity activeOpacity={1} onPress={focusInput}>
+              <EditorGutter
+                lines={lines}
+                visualLines={visualLines}
+                wordWrap={wordWrap}
+                gutterWidth={gutterWidth}
+                lineHeight={lineHeight}
+                fontSize={fontSize}
+                gutterColor={gutterColor}
+                resolvedFont={resolvedFont}
+                paddingTop={CONTENT_PADDING_TOP}
+              />
+            </TouchableOpacity>
+          )}
 
-        {wordWrap ? (
-          <View className="flex-1">{canvasElement}</View>
-        ) : (
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            className="flex-1"
-            contentContainerStyle={{
-              flexGrow: 1,
-              minHeight: totalHeight,
-            }}
-            keyboardShouldPersistTaps="handled"
-          >
-            {canvasElement}
-          </ScrollView>
-        )}
-      </View>
-    </ScrollView>
+          {wordWrap ? (
+            <View className="flex-1">{canvasElement}</View>
+          ) : (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              className="flex-1"
+              contentContainerStyle={{
+                flexGrow: 1,
+                minHeight: totalHeight,
+              }}
+              keyboardShouldPersistTaps="handled"
+            >
+              {canvasElement}
+            </ScrollView>
+          )}
+        </View>
+      </ScrollView>
+
+      <LinkBanner
+        url={editable ? activeLinkUrl : null}
+        keyboardHeight={keyboardHeight}
+        isDark={isDark}
+      />
+    </View>
   );
 };

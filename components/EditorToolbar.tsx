@@ -21,6 +21,7 @@ export interface EditorToolbarProps {
   onRedo: () => void;
   onNew: () => void;
   onOpen: () => void;
+  onRename: () => void;
   onSave: () => void;
   onSaveAs: () => void;
   onSettings: () => void;
@@ -44,6 +45,7 @@ export const EditorToolbar = ({
   onRedo,
   onNew,
   onOpen,
+  onRename,
   onSave,
   onSaveAs,
   onSettings,
@@ -156,6 +158,10 @@ export const EditorToolbar = ({
         onOpen={() => {
           buzz();
           onOpen();
+        }}
+        onRename={() => {
+          buzz();
+          onRename();
         }}
         onSave={() => {
           buzz();

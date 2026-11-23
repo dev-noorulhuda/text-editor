@@ -8,6 +8,7 @@ interface OverflowMenuProps {
   isDark: boolean;
   onNew: () => void;
   onOpen: () => void;
+  onRename: () => void;
   onSave: () => void;
   onSaveAs: () => void;
   onSettings: () => void;
@@ -17,6 +18,7 @@ export const OverflowMenu = ({
   isDark,
   onNew,
   onOpen,
+  onRename,
   onSave,
   onSaveAs,
   onSettings,
@@ -39,6 +41,11 @@ export const OverflowMenu = ({
       label: "Open",
       icon: <Feather name="folder" size={18} color={iconColor} />,
       action: onOpen,
+    },
+    {
+      label: "Rename",
+      icon: <Feather name="edit-3" size={18} color={iconColor} />,
+      action: onRename,
     },
     {
       label: "Save",

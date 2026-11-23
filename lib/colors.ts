@@ -23,4 +23,12 @@ export const colors = {
     800: "#101012",
     900: "#080809",
   },
+  link: {
+    light: "#2563EB",
+    dark: "#60A5FA",
+  },
+  selection: {
+    light: "rgba(37, 99, 235, 0.25)",
+    dark: "rgba(96, 165, 250, 0.30)",
+  },
 } as const;

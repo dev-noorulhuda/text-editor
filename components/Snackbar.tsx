@@ -13,9 +13,15 @@ export interface SnackbarProps {
   visible: boolean;
   message: string;
   isDark: boolean;
+  icon?: keyof typeof MaterialIcons.glyphMap;
 }
 
-export const Snackbar = ({ visible, message, isDark }: SnackbarProps) => {
+export const Snackbar = ({
+  visible,
+  message,
+  isDark,
+  icon = "edit-off",
+}: SnackbarProps) => {
   const opacity = useSharedValue(0);
   const translateY = useSharedValue(20);
 
@@ -70,7 +76,7 @@ export const Snackbar = ({ visible, message, isDark }: SnackbarProps) => {
       <View
         className={`flex-row items-center gap-2 px-4 py-2.5 rounded-full border shadow-lg ${bg}`}
       >
-        <MaterialIcons name="edit-off" size={18} color={iconColor} />
+        <MaterialIcons name={icon} size={18} color={iconColor} />
         <Text className={`text-xs font-semibold ${textColor}`}>{message}</Text>
       </View>
     </Animated.View>

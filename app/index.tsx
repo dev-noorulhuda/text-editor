@@ -1,17 +1,20 @@
 import { Editor } from "@/components/Editor";
 import { EditorToolbar } from "@/components/EditorToolbar";
+import { RenameFileModal } from "@/components/RenameFileModal";
 import { Snackbar } from "@/components/Snackbar";
 import { Tabs } from "@/components/Tabs";
 import { UnsavedChangesModal } from "@/components/UnsavedChangesModal";
 import { useEditor } from "@/hooks/useEditor";
+import { useSnackbar } from "@/hooks/useSnackbar";
 import { colors } from "@/lib/colors";
+import { buzz } from "@/lib/haptics";
 import { detectLanguage } from "@/lib/languageRegistry";
 import type { TabFile } from "@/types/editorTypes";
 import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
 import { useColorScheme } from "nativewind";
-import { useCallback, useRef, useState } from "react";
-import { Clipboard, Keyboard, Text, View } from "react-native";
+import { useCallback, useState } from "react";
+import { Clipboard, Keyboard, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function EditorScreen() {
@@ -35,6 +38,7 @@ export default function EditorScreen() {
     handleContentChange,
     handleNew,
     handleOpen,
+    handleRename,
     handleSave,
     handleSaveAs,
     handleUndo,
@@ -50,22 +54,35 @@ export default function EditorScreen() {
     decreaseFontSize,
   } = useEditor();
 
+  const { snackbar, showNotice, showReadOnlyNotice } = useSnackbar();
   const [prevActiveFileId, setPrevActiveFileId] = useState(activeFileId);
   const [currentLine, setCurrentLine] = useState(1);
   const [copied, setCopied] = useState(false);
-  const [snackbarVisible, setSnackbarVisible] = useState(false);
-  const snackbarTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [renameVisible, setRenameVisible] = useState(false);
 
-  const showReadOnlyNotice = useCallback(() => {
-    if (snackbarTimeout.current) clearTimeout(snackbarTimeout.current);
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(
-      () => {},
-    );
-    setSnackbarVisible(true);
-    snackbarTimeout.current = setTimeout(() => {
-      setSnackbarVisible(false);
-    }, 2200);
-  }, []);
+  const handleSavePress = useCallback(async () => {
+    const outcome = await handleSave();
+    if (outcome === "saved" || outcome === "saved_as") {
+      showNotice("File saved");
+    }
+  }, [handleSave, showNotice]);
+
+  const handleSaveAsPress = useCallback(async () => {
+    const outcome = await handleSaveAs();
+    if (outcome === "saved_as") {
+      showNotice("File saved");
+    }
+  }, [handleSaveAs, showNotice]);
+
+  const handleConfirmRename = useCallback(
+    (newName: string) => {
+      setRenameVisible(false);
+      if (handleRename(newName)) {
+        showNotice(`Renamed to ${newName}`);
+      }
+    },
+    [handleRename, showNotice],
+  );
 
   const handleClear = useCallback(() => {
     handleContentChange("");
@@ -81,15 +98,12 @@ export default function EditorScreen() {
   }, []);
 
   const handleToggleEditable = useCallback(() => {
-    if (isEditable) {
-      Keyboard.dismiss();
-    }
+    if (isEditable) Keyboard.dismiss();
     toggleEditable();
   }, [isEditable, toggleEditable]);
 
   const handleCopyAll = useCallback(async () => {
-    const text = activeFile?.content ?? "";
-    Clipboard.setString(text);
+    Clipboard.setString(activeFile?.content ?? "");
     try {
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch {
@@ -99,8 +113,7 @@ export default function EditorScreen() {
     setTimeout(() => setCopied(false), 1500);
   }, [activeFile?.content]);
 
-  const currentLang = detectLanguage(activeFile?.name);
-  const isCode = currentLang.isCode;
+  const isCode = detectLanguage(activeFile?.name).isCode;
   const effectiveFont =
     fontFamily === "system" && isCode ? "monospace" : fontFamily;
 
@@ -123,7 +136,14 @@ export default function EditorScreen() {
           isDark ? "bg-dark-600" : "bg-white-200"
         }`}
       >
-        <View className="shrink-0 max-w-[42%] mr-2 justify-center">
+        <TouchableOpacity
+          activeOpacity={0.7}
+          onPress={() => {
+            buzz();
+            setRenameVisible(true);
+          }}
+          className="shrink-0 max-w-[42%] mr-2 justify-center"
+        >
           <Text
             numberOfLines={1}
             ellipsizeMode="middle"
@@ -133,7 +153,7 @@ export default function EditorScreen() {
           >
             {activeFile?.name || "Untitled"}
           </Text>
-        </View>
+        </TouchableOpacity>
 
         <EditorToolbar
           isDark={isDark}
@@ -153,8 +173,9 @@ export default function EditorScreen() {
           onRedo={handleRedo}
           onNew={handleNew}
           onOpen={handleOpen}
-          onSave={handleSave}
-          onSaveAs={handleSaveAs}
+          onRename={() => setRenameVisible(true)}
+          onSave={handleSavePress}
+          onSaveAs={handleSaveAsPress}
           onSettings={() => router.push("/settings")}
         />
       </View>
@@ -189,6 +210,14 @@ export default function EditorScreen() {
         onReadOnlyNotice={showReadOnlyNotice}
       />
 
+      <RenameFileModal
+        visible={renameVisible}
+        currentName={activeFile?.name ?? "Untitled"}
+        isDark={isDark}
+        onCancel={() => setRenameVisible(false)}
+        onConfirm={handleConfirmRename}
+      />
+
       <UnsavedChangesModal
         visible={!!closingFile}
         fileName={closingFile?.name ?? ""}
@@ -199,8 +228,9 @@ export default function EditorScreen() {
       />
 
       <Snackbar
-        visible={snackbarVisible}
-        message="Read-only mode is active"
+        visible={snackbar.visible}
+        message={snackbar.message}
+        icon={snackbar.icon}
         isDark={isDark}
       />
     </SafeAreaView>
