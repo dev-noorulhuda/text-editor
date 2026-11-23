@@ -2,16 +2,13 @@ import {
   getEstimatedCursor,
   getLineFromOffset,
   parseVisualLines,
-  type TextLayoutLine,
   type VisualLineInfo,
 } from "@/lib/editorHelpers";
 import { useCallback, useMemo, useRef, useState } from "react";
 import type {
-  NativeSyntheticEvent,
   TextInputSelectionChangeEvent,
+  TextLayoutEvent,
 } from "react-native";
-
-type TextLayoutEvent = NativeSyntheticEvent<{ lines: TextLayoutLine[] }>;
 
 interface UseEditorLayoutProps {
   normalizedContent: string;

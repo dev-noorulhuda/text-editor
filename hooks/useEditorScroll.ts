@@ -7,7 +7,7 @@ import {
   type LayoutChangeEvent,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
-  type ScrollView,
+  type ScrollViewInstance,
 } from "react-native";
 
 interface UseEditorScrollProps {
@@ -19,7 +19,7 @@ export const useEditorScroll = ({
   highlightTop,
   currentLineHeight,
 }: UseEditorScrollProps) => {
-  const scrollViewRef = useRef<ScrollView>(null);
+  const scrollViewRef = useRef<ScrollViewInstance>(null);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [viewportHeight, setViewportHeight] = useState(
     () => Dimensions.get("window").height,

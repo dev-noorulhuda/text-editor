@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import type { GestureResponderEvent } from "react-native";
+import type { GestureResponderEvent, ViewInstance } from "react-native";
 import { Feather, MaterialIcons } from "@expo/vector-icons";
 import { colors } from "@/lib/colors";
 import { buzz } from "@/lib/haptics";
@@ -41,7 +41,7 @@ export const EdgeSpacingModal = ({
     setCurrentValue(value);
   }
 
-  const trackRef = useRef<View>(null);
+  const trackRef = useRef<ViewInstance>(null);
   const trackPageXRef = useRef(0);
   const trackWidthRef = useRef(240);
 
@@ -58,28 +58,32 @@ export const EdgeSpacingModal = ({
   const handleGrant = useCallback(
     (e: GestureResponderEvent) => {
       const pageX = e.nativeEvent.pageX;
-      trackRef.current?.measureInWindow((x, _y, width) => {
-        if (width > 0) {
-          trackPageXRef.current = x;
-          trackWidthRef.current = width;
-          const relativeX = pageX - x;
-          const ratio = Math.max(0, Math.min(1, relativeX / width));
-          const raw = MIN + ratio * (MAX - MIN);
-          const stepped = Math.round(raw / STEP) * STEP;
-          setCurrentValue(Math.max(MIN, Math.min(MAX, stepped)));
-        }
-      });
+      trackRef.current?.measureInWindow(
+        (x: number, _y: number, width: number) => {
+          if (width > 0) {
+            trackPageXRef.current = x;
+            trackWidthRef.current = width;
+            const relativeX = pageX - x;
+            const ratio = Math.max(0, Math.min(1, relativeX / width));
+            const raw = MIN + ratio * (MAX - MIN);
+            const stepped = Math.round(raw / STEP) * STEP;
+            setCurrentValue(Math.max(MIN, Math.min(MAX, stepped)));
+          }
+        },
+      );
     },
     [],
   );
 
   const handleLayout = useCallback(() => {
-    trackRef.current?.measureInWindow((x, _y, width) => {
-      if (width > 0) {
-        trackPageXRef.current = x;
-        trackWidthRef.current = width;
-      }
-    });
+    trackRef.current?.measureInWindow(
+      (x: number, _y: number, width: number) => {
+        if (width > 0) {
+          trackPageXRef.current = x;
+          trackWidthRef.current = width;
+        }
+      },
+    );
   }, []);
 
   const handleDefault = useCallback(() => {

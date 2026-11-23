@@ -6,9 +6,9 @@ import {
   TextInput,
   View,
   type DimensionValue,
-  type NativeSyntheticEvent,
-  type TextInputSelectionChangeEventData,
-  type TextLayoutEventData,
+  type TextInputInstance,
+  type TextInputSelectionChangeEvent,
+  type TextLayoutEvent,
 } from "react-native";
 
 export interface EditorCanvasProps {
@@ -25,16 +25,16 @@ export interface EditorCanvasProps {
   highlightTop: number;
   currentLineHeight: number;
   normalizedContent: string;
-  handleTextLayout: (e: NativeSyntheticEvent<TextLayoutEventData>) => void;
+  handleTextLayout: (e: TextLayoutEvent) => void;
   handleChangeText: (text: string) => void;
   handleSelectionChange: (
-    e: NativeSyntheticEvent<TextInputSelectionChangeEventData>,
+    e: TextInputSelectionChangeEvent,
   ) => void;
   onTapBlank: () => void;
   onReadOnlyNotice?: () => void;
 }
 
-export const EditorCanvas = forwardRef<TextInput, EditorCanvasProps>(
+export const EditorCanvas = forwardRef<TextInputInstance, EditorCanvasProps>(
   (
     {
       editable,
@@ -58,10 +58,10 @@ export const EditorCanvas = forwardRef<TextInput, EditorCanvasProps>(
     },
     ref,
   ) => {
-    const innerRef = useRef<TextInput | null>(null);
+    const innerRef = useRef<TextInputInstance | null>(null);
 
     const setMergedRef = useCallback(
-      (node: TextInput | null) => {
+      (node: TextInputInstance | null) => {
         innerRef.current = node;
         if (typeof ref === "function") {
           ref(node);

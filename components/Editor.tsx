@@ -12,10 +12,10 @@ import type { EditorProps } from "@/types/editorTypes";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ScrollView,
-  TextInput,
   TouchableOpacity,
   View,
   type DimensionValue,
+  type TextInputInstance,
 } from "react-native";
 
 export const Editor = ({
@@ -35,7 +35,7 @@ export const Editor = ({
   onReadOnlyNotice,
 }: EditorProps) => {
   const lineHeight = Math.round(fontSize * LINE_HEIGHT_RATIO);
-  const inputRef = useRef<TextInput>(null);
+  const inputRef = useRef<TextInputInstance>(null);
   const [activeLine, setActiveLine] = useState(currentLine);
 
   if (currentLine !== activeLine) {
