@@ -1,3 +1,4 @@
+import type { SearchMatch } from "@/lib/searchHelpers";
 import type {
   DimensionValue,
   TextInputSelectionChangeEvent,
@@ -51,6 +52,8 @@ export interface EditorProps {
   wordWrap?: boolean;
   currentLine: number;
   autoFocus?: boolean;
+  searchMatches?: SearchMatch[];
+  activeMatchIndex?: number;
   onChangeText: (text: string) => void;
   onSelectionChange: (line: number) => void;
   onReadOnlyNotice?: () => void;
@@ -79,6 +82,8 @@ export interface EditorCanvasProps {
   highlightTop: number;
   currentLineHeight: number;
   normalizedContent: string;
+  searchMatches?: SearchMatch[];
+  activeMatchIndex?: number;
   handleTextLayout: (e: TextLayoutEvent) => void;
   handleChangeText: (text: string) => void;
   handleSelectionChange: (e: TextInputSelectionChangeEvent) => void;

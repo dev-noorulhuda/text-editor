@@ -36,4 +36,12 @@ export const colors = {
     light: "rgba(0, 0, 0, 0.02)",
     dark: "rgba(255, 255, 255, 0.02)",
   },
+  match: {
+    light: "rgba(250, 204, 21, 0.38)",
+    dark: "rgba(250, 204, 21, 0.28)",
+  },
+  activeMatch: {
+    light: "rgba(249, 115, 22, 0.45)",
+    dark: "rgba(249, 115, 22, 0.50)",
+  },
 } as const;

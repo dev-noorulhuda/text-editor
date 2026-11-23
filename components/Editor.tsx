@@ -31,6 +31,8 @@ export const Editor = ({
   wordWrap = false,
   currentLine,
   autoFocus,
+  searchMatches,
+  activeMatchIndex,
   onChangeText,
   onSelectionChange,
   onReadOnlyNotice,
@@ -48,6 +50,7 @@ export const Editor = ({
     () => content.replace(/\r\n/g, "\n").replace(/\r/g, "\n"),
     [content],
   );
+  const effectiveActiveLine = normalizedContent === "" ? 1 : activeLine;
 
   useEffect(() => {
     if (!autoFocus || !editable) return;
@@ -75,7 +78,7 @@ export const Editor = ({
   } = useEditorLayout({
     normalizedContent,
     wordWrap,
-    activeLine,
+    activeLine: effectiveActiveLine,
     lineHeight,
     onSelectionChange: handleSelection,
     onChangeText,
@@ -159,6 +162,8 @@ export const Editor = ({
       highlightTop={highlightTop}
       currentLineHeight={currentLineHeight}
       normalizedContent={normalizedContent}
+      searchMatches={searchMatches}
+      activeMatchIndex={activeMatchIndex}
       handleTextLayout={handleTextLayout}
       handleChangeText={handleChangeText}
       handleSelectionChange={handleSelectionChange}

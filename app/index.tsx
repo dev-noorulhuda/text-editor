@@ -1,10 +1,12 @@
 import { Editor } from "@/components/Editor";
 import { EditorToolbar } from "@/components/EditorToolbar";
+import { FindReplaceBar } from "@/components/FindReplaceBar";
 import { RenameFileModal } from "@/components/RenameFileModal";
 import { Snackbar } from "@/components/Snackbar";
 import { Tabs } from "@/components/Tabs";
 import { UnsavedChangesModal } from "@/components/UnsavedChangesModal";
 import { useEditor } from "@/hooks/useEditor";
+import { useFindReplace } from "@/hooks/useFindReplace";
 import { useSnackbar } from "@/hooks/useSnackbar";
 import { colors } from "@/lib/colors";
 import { buzz } from "@/lib/haptics";
@@ -20,76 +22,16 @@ import { SafeAreaView } from "react-native-safe-area-context";
 export default function EditorScreen() {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
-
-  const {
-    activeFile,
-    activeFileId,
-    files,
-    canUndo,
-    canRedo,
-    isEditable,
-    fontSize,
-    fontFamily,
-    highlightLine,
-    showLineNumbers,
-    wordWrap,
-    edgeSpacing,
-    openKeyboardAtStart,
-    handleContentChange,
-    handleNew,
-    handleOpen,
-    handleRename,
-    handleSave,
-    handleSaveAs,
-    handleUndo,
-    handleRedo,
-    handleClose,
-    closingFile,
-    handleDiscardClose,
-    handleSaveClose,
-    handleCancelClose,
-    setActiveFileId,
-    toggleEditable,
-    increaseFontSize,
-    decreaseFontSize,
-  } = useEditor();
-
+  const editor = useEditor();
   const { snackbar, showNotice, showReadOnlyNotice } = useSnackbar();
-  const [prevActiveFileId, setPrevActiveFileId] = useState(activeFileId);
+
+  const [prevActiveFileId, setPrevActiveFileId] = useState(editor.activeFileId);
   const [currentLine, setCurrentLine] = useState(1);
   const [copied, setCopied] = useState(false);
   const [renameVisible, setRenameVisible] = useState(false);
 
-  const handleSavePress = useCallback(async () => {
-    const outcome = await handleSave();
-    if (outcome === "saved" || outcome === "saved_as") {
-      showNotice("File saved");
-    }
-  }, [handleSave, showNotice]);
-
-  const handleSaveAsPress = useCallback(async () => {
-    const outcome = await handleSaveAs();
-    if (outcome === "saved_as") {
-      showNotice("File saved");
-    }
-  }, [handleSaveAs, showNotice]);
-
-  const handleConfirmRename = useCallback(
-    (newName: string) => {
-      setRenameVisible(false);
-      if (handleRename(newName)) {
-        showNotice(`Renamed to ${newName}`);
-      }
-    },
-    [handleRename, showNotice],
-  );
-
-  const handleClear = useCallback(() => {
-    handleContentChange("");
-  }, [handleContentChange]);
-
-  if (activeFileId !== prevActiveFileId) {
-    setPrevActiveFileId(activeFileId);
+  if (editor.activeFileId !== prevActiveFileId) {
+    setPrevActiveFileId(editor.activeFileId);
     setCurrentLine(1);
   }
 
@@ -97,13 +39,44 @@ export default function EditorScreen() {
     setCurrentLine(line);
   }, []);
 
+  const find = useFindReplace({
+    content: editor.activeFile?.content ?? "",
+    isEditable: editor.isEditable,
+    onContentChange: editor.handleContentChange,
+    onJumpToLine: handleSelectionChange,
+    onReadOnlyNotice: showReadOnlyNotice,
+    onNotify: showNotice,
+  });
+
+  const handleSavePress = useCallback(async () => {
+    const outcome = await editor.handleSave();
+    if (outcome === "saved" || outcome === "saved_as") showNotice("File saved");
+  }, [editor, showNotice]);
+
+  const handleSaveAsPress = useCallback(async () => {
+    if ((await editor.handleSaveAs()) === "saved_as") showNotice("File saved");
+  }, [editor, showNotice]);
+
+  const handleConfirmRename = useCallback(
+    (newName: string) => {
+      setRenameVisible(false);
+      if (editor.handleRename(newName)) showNotice(`Renamed to ${newName}`);
+    },
+    [editor, showNotice],
+  );
+
+  const handleClear = useCallback(() => {
+    editor.handleContentChange("");
+    setCurrentLine(1);
+  }, [editor]);
+
   const handleToggleEditable = useCallback(() => {
-    if (isEditable) Keyboard.dismiss();
-    toggleEditable();
-  }, [isEditable, toggleEditable]);
+    if (editor.isEditable) Keyboard.dismiss();
+    editor.toggleEditable();
+  }, [editor]);
 
   const handleCopyAll = useCallback(async () => {
-    Clipboard.setString(activeFile?.content ?? "");
+    Clipboard.setString(editor.activeFile?.content ?? "");
     try {
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch {
@@ -111,19 +84,17 @@ export default function EditorScreen() {
     }
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
-  }, [activeFile?.content]);
+  }, [editor.activeFile?.content]);
 
-  const isCode = detectLanguage(activeFile?.name).isCode;
+  const isCode = detectLanguage(editor.activeFile?.name).isCode;
   const effectiveFont =
-    fontFamily === "system" && isCode ? "monospace" : fontFamily;
-
-  const tabFiles: TabFile[] = files.map((f) => ({
+    editor.fontFamily === "system" && isCode ? "monospace" : editor.fontFamily;
+  const tabFiles: TabFile[] = editor.files.map((f) => ({
     id: f.id,
     name: f.name,
     isModified: f.isModified,
   }));
-
-  const canCopy = (activeFile?.content?.length ?? 0) > 0;
+  const canCopy = (editor.activeFile?.content?.length ?? 0) > 0;
   const iconColor = isDark ? colors.dark[200] : colors.white[600];
 
   return (
@@ -151,28 +122,30 @@ export default function EditorScreen() {
               isDark ? "text-dark-100" : "text-white-900"
             }`}
           >
-            {activeFile?.name || "Untitled"}
+            {editor.activeFile?.name || "Untitled"}
           </Text>
         </TouchableOpacity>
 
         <EditorToolbar
           isDark={isDark}
           iconColor={iconColor}
-          isEditable={isEditable}
-          fontSize={fontSize}
-          canUndo={canUndo}
-          canRedo={canRedo}
+          isEditable={editor.isEditable}
+          isFindOpen={find.isOpen}
+          fontSize={editor.fontSize}
+          canUndo={editor.canUndo}
+          canRedo={editor.canRedo}
           canCopy={canCopy}
           copied={copied}
           onToggleEditable={handleToggleEditable}
+          onToggleFind={find.toggleFind}
           onCopyAll={handleCopyAll}
           onClear={handleClear}
-          onDecreaseFontSize={decreaseFontSize}
-          onIncreaseFontSize={increaseFontSize}
-          onUndo={handleUndo}
-          onRedo={handleRedo}
-          onNew={handleNew}
-          onOpen={handleOpen}
+          onDecreaseFontSize={editor.decreaseFontSize}
+          onIncreaseFontSize={editor.increaseFontSize}
+          onUndo={editor.handleUndo}
+          onRedo={editor.handleRedo}
+          onNew={editor.handleNew}
+          onOpen={editor.handleOpen}
           onRename={() => setRenameVisible(true)}
           onSave={handleSavePress}
           onSaveAs={handleSaveAsPress}
@@ -184,47 +157,71 @@ export default function EditorScreen() {
       <View className="">
         <Tabs
           files={tabFiles}
-          activeFileId={activeFileId}
+          activeFileId={editor.activeFileId}
           isDark={isDark}
-          onSelect={setActiveFileId}
-          onClose={handleClose}
-          onNew={handleNew}
+          onSelect={editor.setActiveFileId}
+          onClose={editor.handleClose}
+          onNew={editor.handleNew}
         />
       </View>
 
+      {find.isOpen && (
+        <FindReplaceBar
+          isDark={isDark}
+          isEditable={editor.isEditable}
+          query={find.query}
+          replacement={find.replacement}
+          showReplace={find.showReplace}
+          caseSensitive={find.caseSensitive}
+          matchCount={find.matches.length}
+          activeIndex={find.activeIndex}
+          onChangeQuery={find.setQuery}
+          onChangeReplacement={find.setReplacement}
+          onToggleReplace={find.toggleReplace}
+          onToggleCaseSensitive={find.toggleCaseSensitive}
+          onNext={find.nextMatch}
+          onPrev={find.prevMatch}
+          onReplace={find.handleReplace}
+          onReplaceAll={find.handleReplaceAll}
+          onClose={find.closeFind}
+        />
+      )}
+
       <Editor
-        key={activeFileId}
-        content={activeFile?.content ?? ""}
+        key={editor.activeFileId}
+        content={editor.activeFile?.content ?? ""}
         isDark={isDark}
-        editable={isEditable}
-        fontSize={fontSize}
+        editable={editor.isEditable}
+        fontSize={editor.fontSize}
         fontFamily={effectiveFont}
-        edgeSpacing={edgeSpacing}
-        highlightLine={highlightLine}
-        showLineNumbers={showLineNumbers}
-        wordWrap={wordWrap}
+        edgeSpacing={editor.edgeSpacing}
+        highlightLine={editor.highlightLine}
+        showLineNumbers={editor.showLineNumbers}
+        wordWrap={editor.wordWrap}
         currentLine={currentLine}
-        autoFocus={openKeyboardAtStart}
-        onChangeText={handleContentChange}
+        autoFocus={editor.openKeyboardAtStart}
+        searchMatches={find.matches}
+        activeMatchIndex={find.activeIndex}
+        onChangeText={editor.handleContentChange}
         onSelectionChange={handleSelectionChange}
         onReadOnlyNotice={showReadOnlyNotice}
       />
 
       <RenameFileModal
         visible={renameVisible}
-        currentName={activeFile?.name ?? "Untitled"}
+        currentName={editor.activeFile?.name ?? "Untitled"}
         isDark={isDark}
         onCancel={() => setRenameVisible(false)}
         onConfirm={handleConfirmRename}
       />
 
       <UnsavedChangesModal
-        visible={!!closingFile}
-        fileName={closingFile?.name ?? ""}
+        visible={!!editor.closingFile}
+        fileName={editor.closingFile?.name ?? ""}
         isDark={isDark}
-        onCancel={handleCancelClose}
-        onDiscard={handleDiscardClose}
-        onSave={handleSaveClose}
+        onCancel={editor.handleCancelClose}
+        onDiscard={editor.handleDiscardClose}
+        onSave={editor.handleSaveClose}
       />
 
       <Snackbar

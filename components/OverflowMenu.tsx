@@ -6,6 +6,9 @@ import { Modal, Pressable, Text, TouchableOpacity, View } from "react-native";
 
 interface OverflowMenuProps {
   isDark: boolean;
+  fontSize: number;
+  onDecreaseFontSize: () => void;
+  onIncreaseFontSize: () => void;
   onNew: () => void;
   onOpen: () => void;
   onRename: () => void;
@@ -16,6 +19,9 @@ interface OverflowMenuProps {
 
 export const OverflowMenu = ({
   isDark,
+  fontSize,
+  onDecreaseFontSize,
+  onIncreaseFontSize,
   onNew,
   onOpen,
   onRename,
@@ -29,7 +35,9 @@ export const OverflowMenu = ({
   const menuBg = isDark ? "bg-dark-600" : "bg-white-50";
   const menuBorder = isDark ? "border-dark-400" : "border-white-300";
   const textColor = isDark ? "text-dark-100" : "text-white-800";
+  const subtleText = isDark ? "text-dark-200" : "text-white-600";
   const hoverBg = isDark ? "active:bg-dark-500" : "active:bg-white-200";
+  const pillBg = isDark ? "bg-dark-500" : "bg-white-200";
 
   const items = [
     {
@@ -86,26 +94,58 @@ export const OverflowMenu = ({
           className="flex-1 bg-black/20 justify-start items-end pt-14 pr-4"
           onPress={() => setVisible(false)}
         >
-          <View
-            className={`rounded-lg border shadow-lg w-40 ${menuBg} ${menuBorder}`}
+          <Pressable
+            onPress={(e) => e.stopPropagation()}
+            className={`rounded-lg border shadow-lg w-48 ${menuBg} ${menuBorder}`}
           >
+            <View
+              className={`flex-row items-center justify-between px-3 py-2.5 border-b ${menuBorder}`}
+            >
+              <View className="flex-row items-center gap-2">
+                <MaterialIcons name="format-size" size={18} color={iconColor} />
+                <Text className={`text-xs font-medium ${subtleText}`}>
+                  {fontSize}pts
+                </Text>
+              </View>
+              <View className="flex-row items-center gap-1">
+                <TouchableOpacity
+                  onPress={() => {
+                    buzz();
+                    onDecreaseFontSize();
+                  }}
+                  className={`p-1.5 rounded-md ${pillBg}`}
+                >
+                  <Feather name="minus" size={15} color={iconColor} />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => {
+                    buzz();
+                    onIncreaseFontSize();
+                  }}
+                  className={`p-1.5 rounded-md ${pillBg}`}
+                >
+                  <Feather name="plus" size={15} color={iconColor} />
+                </TouchableOpacity>
+              </View>
+            </View>
+
             {items.map((item, index) => (
               <TouchableOpacity
                 key={item.label}
                 onPress={() => {
                   buzz();
-                  item.action();
                   setVisible(false);
+                  item.action();
                 }}
                 className={`flex-row items-center px-3 py-3 gap-3 ${
-                  index === 0 ? "rounded-t-lg" : ""
-                } ${index === items.length - 1 ? "rounded-b-lg" : ""} ${hoverBg}`}
+                  index === items.length - 1 ? "rounded-b-lg" : ""
+                } ${hoverBg}`}
               >
                 {item.icon}
                 <Text className={`text-sm ${textColor}`}>{item.label}</Text>
               </TouchableOpacity>
             ))}
-          </View>
+          </Pressable>
         </Pressable>
       </Modal>
     </View>

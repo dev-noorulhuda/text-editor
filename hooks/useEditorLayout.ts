@@ -67,18 +67,29 @@ export const useEditorLayout = ({
   );
 
   const { highlightTop, currentLineHeight } = useMemo(() => {
-    if (!wordWrap || visualLines.length === 0) {
+    if (!normalizedContent) {
       return {
-        highlightTop: (Math.max(activeLine, 1) - 1) * lineHeight,
+        highlightTop: 0,
         currentLineHeight: lineHeight,
       };
     }
 
+    const totalLines = normalizedContent.split("\n").length;
+    const clampedLine = Math.min(Math.max(activeLine, 1), totalLines);
+
+    if (!wordWrap || visualLines.length === 0) {
+      return {
+        highlightTop: (clampedLine - 1) * lineHeight,
+        currentLineHeight: lineHeight,
+      };
+    }
+
+    const safeCursor = Math.min(cursorOffset, normalizedContent.length);
     let matchedRow = -1;
     for (let i = 0; i < visualLines.length; i++) {
       const vl = visualLines[i];
       if (!vl) continue;
-      if (cursorOffset >= vl.start && cursorOffset < vl.end) {
+      if (safeCursor >= vl.start && safeCursor < vl.end) {
         matchedRow = i;
         break;
       }
@@ -98,7 +109,7 @@ export const useEditorLayout = ({
             }
           }
         }
-        const lineDiff = Math.max(activeLine - maxLogical, 0);
+        const lineDiff = Math.max(clampedLine - maxLogical, 0);
         if (lineDiff > 0) {
           const defaultH = last.height ?? lineHeight;
           return {
@@ -119,10 +130,10 @@ export const useEditorLayout = ({
     }
 
     return {
-      highlightTop: (Math.max(activeLine, 1) - 1) * lineHeight,
+      highlightTop: (clampedLine - 1) * lineHeight,
       currentLineHeight: lineHeight,
     };
-  }, [wordWrap, visualLines, activeLine, cursorOffset, lineHeight]);
+  }, [normalizedContent, wordWrap, visualLines, activeLine, cursorOffset, lineHeight]);
 
   return {
     visualLines,

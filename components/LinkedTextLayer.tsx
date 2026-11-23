@@ -1,4 +1,4 @@
-import type { TextSegment } from "@/lib/linkHelpers";
+import type { StyledTextRun } from "@/lib/searchHelpers";
 import { Text, View, type TextStyle } from "react-native";
 
 export interface CanvasPadding {
@@ -11,10 +11,12 @@ export interface CanvasPadding {
 export interface LinkedTextLayerProps {
   mode: "readonly" | "backdrop";
   content: string;
-  segments: TextSegment[];
+  runs: StyledTextRun[];
   textColor: string;
   placeholderColor: string;
   linkColor: string;
+  matchBg: string;
+  activeMatchBg: string;
   baseStyle: TextStyle;
   padding: CanvasPadding;
   totalHeight?: number;
@@ -24,10 +26,12 @@ export interface LinkedTextLayerProps {
 export const LinkedTextLayer = ({
   mode,
   content,
-  segments,
+  runs,
   textColor,
   placeholderColor,
   linkColor,
+  matchBg,
+  activeMatchBg,
   baseStyle,
   padding,
   totalHeight,
@@ -39,6 +43,38 @@ export const LinkedTextLayer = ({
     paddingTop: padding.top,
     paddingBottom: padding.bottom,
   };
+
+  const renderRuns = (clickableLinks: boolean) =>
+    runs.map((run, i) => {
+      const bg =
+        run.matchType === "active"
+          ? activeMatchBg
+          : run.matchType === "match"
+            ? matchBg
+            : undefined;
+
+      if (!run.isLink && !bg) {
+        return run.text;
+      }
+
+      return (
+        <Text
+          key={i}
+          onPress={
+            clickableLinks && run.isLink && run.url
+              ? () => onLinkPress?.(run.url!)
+              : undefined
+          }
+          style={{
+            color: run.isLink ? linkColor : undefined,
+            textDecorationLine: run.isLink ? "underline" : undefined,
+            backgroundColor: bg,
+          }}
+        >
+          {run.text}
+        </Text>
+      );
+    });
 
   if (mode === "readonly") {
     return (
@@ -54,24 +90,7 @@ export const LinkedTextLayer = ({
           width: "100%",
         }}
       >
-        {!content
-          ? "Write something..."
-          : segments.map((seg, i) =>
-              seg.isLink && seg.url ? (
-                <Text
-                  key={i}
-                  onPress={() => onLinkPress?.(seg.url!)}
-                  style={{
-                    color: linkColor,
-                    textDecorationLine: "underline",
-                  }}
-                >
-                  {seg.text}
-                </Text>
-              ) : (
-                seg.text
-              ),
-            )}
+        {!content ? "Write something..." : renderRuns(true)}
       </Text>
     );
   }
@@ -89,27 +108,15 @@ export const LinkedTextLayer = ({
       }}
     >
       <Text
+        selectable={false}
         textBreakStrategy="simple"
         style={{
           ...baseStyle,
           color: textColor,
+          userSelect: "none",
         }}
       >
-        {segments.map((seg, i) =>
-          seg.isLink ? (
-            <Text
-              key={i}
-              style={{
-                color: linkColor,
-                textDecorationLine: "underline",
-              }}
-            >
-              {seg.text}
-            </Text>
-          ) : (
-            seg.text
-          ),
-        )}
+        {renderRuns(false)}
         {content.endsWith("\n") ? " " : ""}
       </Text>
     </View>

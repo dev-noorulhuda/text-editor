@@ -1,18 +1,21 @@
 import { OverflowMenu } from "@/components/OverflowMenu";
+import { colors } from "@/lib/colors";
 import { buzz } from "@/lib/haptics";
 import { Feather, MaterialIcons } from "@expo/vector-icons";
-import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { ScrollView, TouchableOpacity, View } from "react-native";
 
 export interface EditorToolbarProps {
   isDark: boolean;
   iconColor: string;
   isEditable: boolean;
+  isFindOpen: boolean;
   fontSize: number;
   canUndo: boolean;
   canRedo: boolean;
   canCopy: boolean;
   copied: boolean;
   onToggleEditable: () => void;
+  onToggleFind: () => void;
   onCopyAll: () => void;
   onClear: () => void;
   onDecreaseFontSize: () => void;
@@ -31,12 +34,14 @@ export const EditorToolbar = ({
   isDark,
   iconColor,
   isEditable,
+  isFindOpen,
   fontSize,
   canUndo,
   canRedo,
   canCopy,
   copied,
   onToggleEditable,
+  onToggleFind,
   onCopyAll,
   onClear,
   onDecreaseFontSize,
@@ -78,27 +83,23 @@ export const EditorToolbar = ({
         <TouchableOpacity
           onPress={() => {
             buzz();
-            onDecreaseFontSize();
+            onToggleFind();
           }}
-          className="p-1.5"
+          className={`p-1.5 rounded-md ${
+            isFindOpen ? (isDark ? "bg-dark-500" : "bg-white-300") : ""
+          }`}
         >
-          <Feather name="minus" size={20} color={iconColor} />
-        </TouchableOpacity>
-
-        <Text
-          className={`text-xs px-0.5 ${isDark ? "text-dark-200" : "text-white-600"}`}
-        >
-          {fontSize}pts
-        </Text>
-
-        <TouchableOpacity
-          onPress={() => {
-            buzz();
-            onIncreaseFontSize();
-          }}
-          className="p-1.5"
-        >
-          <Feather name="plus" size={20} color={iconColor} />
+          <Feather
+            name="search"
+            size={18}
+            color={
+              isFindOpen
+                ? isDark
+                  ? colors.link.dark
+                  : colors.link.light
+                : iconColor
+            }
+          />
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -145,12 +146,15 @@ export const EditorToolbar = ({
           disabled={!canClear}
           className={`p-1.5 ${!canClear ? "opacity-30" : ""}`}
         >
-          <Feather name="trash-2" size={18} color={iconColor} />
+          <MaterialIcons name="cleaning-services" size={19} color={iconColor} />
         </TouchableOpacity>
       </ScrollView>
 
       <OverflowMenu
         isDark={isDark}
+        fontSize={fontSize}
+        onDecreaseFontSize={onDecreaseFontSize}
+        onIncreaseFontSize={onIncreaseFontSize}
         onNew={() => {
           buzz();
           onNew();

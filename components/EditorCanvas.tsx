@@ -7,6 +7,7 @@ import {
   openUrlInBrowser,
   splitTextWithLinks,
 } from "@/lib/linkHelpers";
+import { mergeSegmentsWithMatches } from "@/lib/searchHelpers";
 import type { EditorCanvasProps } from "@/types/editorTypes";
 import { forwardRef, useCallback, useEffect, useMemo, useRef } from "react";
 import {
@@ -33,6 +34,8 @@ export const EditorCanvas = forwardRef<TextInputInstance, EditorCanvasProps>(
       highlightTop,
       currentLineHeight,
       normalizedContent,
+      searchMatches = [],
+      activeMatchIndex = -1,
       handleTextLayout,
       handleChangeText,
       handleSelectionChange,
@@ -51,6 +54,13 @@ export const EditorCanvas = forwardRef<TextInputInstance, EditorCanvasProps>(
     const hasLinks = useMemo(
       () => segments.some((seg) => seg.isLink),
       [segments],
+    );
+    const hasMatches = searchMatches.length > 0;
+    const needsRichOverlay = hasLinks || hasMatches;
+    const styledRuns = useMemo(
+      () =>
+        mergeSegmentsWithMatches(segments, searchMatches, activeMatchIndex),
+      [segments, searchMatches, activeMatchIndex],
     );
 
     useEffect(() => {
@@ -82,15 +92,14 @@ export const EditorCanvas = forwardRef<TextInputInstance, EditorCanvasProps>(
       }, 250);
     }, []);
 
+    const themeKey = isDark ? "dark" : "light";
     const textColor = isDark ? colors.dark[50] : colors.white[900];
     const placeholderColor = isDark ? colors.dark[300] : colors.white[500];
-    const linkColor = isDark ? colors.link.dark : colors.link.light;
-    const selectionColor = isDark
-      ? colors.selection.dark
-      : colors.selection.light;
-    const invisibleInputColor = isDark
-      ? colors.invisibleText.dark
-      : colors.invisibleText.light;
+    const linkColor = colors.link[themeKey];
+    const selectionColor = colors.selection[themeKey];
+    const invisibleInputColor = colors.invisibleText[themeKey];
+    const matchBg = colors.match[themeKey];
+    const activeMatchBg = colors.activeMatch[themeKey];
     const lineHighlightBg = isDark
       ? "rgba(255,255,255,0.07)"
       : "rgba(0,0,0,0.04)";
@@ -166,10 +175,12 @@ export const EditorCanvas = forwardRef<TextInputInstance, EditorCanvasProps>(
           <LinkedTextLayer
             mode="readonly"
             content={normalizedContent}
-            segments={segments}
+            runs={styledRuns}
             textColor={textColor}
             placeholderColor={placeholderColor}
             linkColor={linkColor}
+            matchBg={matchBg}
+            activeMatchBg={activeMatchBg}
             baseStyle={typographyStyle}
             padding={canvasPadding}
             totalHeight={totalHeight}
@@ -177,14 +188,16 @@ export const EditorCanvas = forwardRef<TextInputInstance, EditorCanvasProps>(
           />
         ) : (
           <>
-            {hasLinks && (
+            {needsRichOverlay && (
               <LinkedTextLayer
                 mode="backdrop"
                 content={normalizedContent}
-                segments={segments}
+                runs={styledRuns}
                 textColor={textColor}
                 placeholderColor={placeholderColor}
                 linkColor={linkColor}
+                matchBg={matchBg}
+                activeMatchBg={activeMatchBg}
                 baseStyle={typographyStyle}
                 padding={canvasPadding}
               />
@@ -201,7 +214,7 @@ export const EditorCanvas = forwardRef<TextInputInstance, EditorCanvasProps>(
                 paddingTop: canvasPadding.top,
                 paddingBottom: canvasPadding.bottom,
                 backgroundColor: "transparent",
-                color: hasLinks ? invisibleInputColor : textColor,
+                color: needsRichOverlay ? invisibleInputColor : textColor,
                 flex: 1,
                 minHeight: totalHeight,
                 width: "100%",
