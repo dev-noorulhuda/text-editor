@@ -162,6 +162,7 @@ export default function EditorScreen() {
           onSelect={editor.setActiveFileId}
           onClose={editor.handleClose}
           onNew={editor.handleNew}
+          onReorder={editor.handleReorderTabs}
         />
       </View>
 

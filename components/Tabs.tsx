@@ -1,8 +1,19 @@
+import {
+  DraggableTabItem,
+  type TabLayoutRect,
+} from "@/components/DraggableTabItem";
 import { colors } from "@/lib/colors";
 import { buzz } from "@/lib/haptics";
 import type { TabsProps } from "@/types/editorTypes";
 import { Feather } from "@expo/vector-icons";
-import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import * as Haptics from "expo-haptics";
+import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  ScrollView,
+  TouchableOpacity,
+  type LayoutChangeEvent,
+} from "react-native";
+import { useSharedValue } from "react-native-reanimated";
 
 export const Tabs = ({
   files,
@@ -11,76 +22,77 @@ export const Tabs = ({
   onSelect,
   onClose,
   onNew,
+  onReorder,
 }: TabsProps) => {
+  const [isDragging, setIsDragging] = useState(false);
+  const dragIndex = useSharedValue(-1);
+  const hoverIndex = useSharedValue(-1);
+  const dragTranslateX = useSharedValue(0);
+  const tabLayouts = useSharedValue<TabLayoutRect[]>([]);
+  const layoutsRef = useRef<TabLayoutRect[]>([]);
+
+  useEffect(() => {
+    if (layoutsRef.current.length > files.length) {
+      layoutsRef.current = layoutsRef.current.slice(0, files.length);
+      tabLayouts.set([...layoutsRef.current]);
+    }
+  }, [files.length, tabLayouts]);
+
+  const handleLayoutTab = useCallback(
+    (index: number, e: LayoutChangeEvent) => {
+      const { x, width } = e.nativeEvent.layout;
+      layoutsRef.current[index] = { x, width };
+      tabLayouts.set(layoutsRef.current.slice(0, files.length));
+    },
+    [files.length, tabLayouts],
+  );
+
+  const handleDragStart = useCallback(() => {
+    setIsDragging(true);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+  }, []);
+
+  const handleHoverSwap = useCallback(() => {
+    Haptics.selectionAsync().catch(() => {});
+  }, []);
+
+  const handleDragEnd = useCallback(
+    (fromIndex: number, toIndex: number) => {
+      setIsDragging(false);
+      if (fromIndex >= 0 && toIndex >= 0 && fromIndex !== toIndex) {
+        onReorder?.(fromIndex, toIndex);
+      }
+    },
+    [onReorder],
+  );
+
   return (
     <ScrollView
       horizontal
+      scrollEnabled={!isDragging}
       showsHorizontalScrollIndicator={false}
       className={`${isDark ? "bg-dark-500" : "bg-white-200"}`}
     >
-      {files.map((file) => {
-        const isActive = file.id === activeFileId;
-        return (
-          <View
-            key={file.id}
-            className={`h-9 flex-row items-center ${
-              isActive
-                ? isDark
-                  ? "border-b-2 border-dark-50 bg-dark-600"
-                  : "border-b-2 border-white-400 bg-white-50"
-                : ""
-            }`}
-          >
-            <TouchableOpacity
-              activeOpacity={0.7}
-              onPress={() => {
-                buzz();
-                onSelect(file.id);
-              }}
-              className="h-full flex-row items-center pl-3 pr-1.5"
-            >
-              <Text
-                className={`text-xs ${
-                  isActive
-                    ? isDark
-                      ? "text-dark-50"
-                      : "text-white-900"
-                    : isDark
-                      ? "text-dark-300"
-                      : "text-white-600"
-                }`}
-              >
-                {file.name}
-                {file.isModified ? " •" : ""}
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              activeOpacity={0.6}
-              hitSlop={{ top: 10, bottom: 10, left: 6, right: 10 }}
-              onPress={() => {
-                buzz();
-                onClose(file.id);
-              }}
-              className="h-full px-2.5 justify-center items-center"
-            >
-              <Feather
-                name="x"
-                size={14}
-                color={
-                  isActive
-                    ? isDark
-                      ? colors.dark[200]
-                      : colors.white[600]
-                    : isDark
-                      ? colors.dark[400]
-                      : colors.white[400]
-                }
-              />
-            </TouchableOpacity>
-          </View>
-        );
-      })}
+      {files.map((file, index) => (
+        <DraggableTabItem
+          key={file.id}
+          file={file}
+          index={index}
+          tabCount={files.length}
+          isActive={file.id === activeFileId}
+          isDark={isDark}
+          dragIndex={dragIndex}
+          hoverIndex={hoverIndex}
+          dragTranslateX={dragTranslateX}
+          tabLayouts={tabLayouts}
+          onLayoutTab={handleLayoutTab}
+          onSelect={onSelect}
+          onClose={onClose}
+          onDragStart={handleDragStart}
+          onHoverSwap={handleHoverSwap}
+          onDragEnd={handleDragEnd}
+        />
+      ))}
       <TouchableOpacity
         onPress={() => {
           buzz();

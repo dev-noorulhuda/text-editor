@@ -82,6 +82,26 @@ export const mergeOpenedFile = (
   return { updated: [...prev, newFile], targetId: newId, content };
 };
 
+export const reorderFiles = (
+  prev: FileData[],
+  fromIndex: number,
+  toIndex: number,
+): FileData[] => {
+  if (
+    fromIndex === toIndex ||
+    fromIndex < 0 ||
+    toIndex < 0 ||
+    fromIndex >= prev.length ||
+    toIndex >= prev.length
+  ) {
+    return prev;
+  }
+  const moved = prev[fromIndex];
+  if (!moved) return prev;
+  const without = prev.filter((_, idx) => idx !== fromIndex);
+  return [...without.slice(0, toIndex), moved, ...without.slice(toIndex)];
+};
+
 export const saveAndCloseFile = async (
   target: FileData,
   onClose: (id: string) => void,

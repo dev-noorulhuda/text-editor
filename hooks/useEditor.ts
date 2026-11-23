@@ -2,7 +2,7 @@ import { useEditorHistory } from "@/hooks/useEditorHistory";
 import { useEditorSettings } from "@/hooks/useEditorSettings";
 import { useIncomingFile } from "@/hooks/useIncomingFile";
 import { useTabClose } from "@/hooks/useTabClose";
-import { mergeOpenedFile } from "@/lib/editorAlerts";
+import { mergeOpenedFile, reorderFiles } from "@/lib/editorAlerts";
 import {
   openFile,
   openFileFromUri,
@@ -143,7 +143,6 @@ export const useEditor = () => {
       uri: null,
       isModified: false,
     };
-
     setFiles((prev) => {
       const updated = [...prev, newFile];
       persistTabs(updated);
@@ -154,8 +153,7 @@ export const useEditor = () => {
   }, [setActiveFileId]);
 
   const handleOpen = useCallback(async () => {
-    const result = await openFile();
-    applyOpenedFile(result);
+    applyOpenedFile(await openFile());
   }, [applyOpenedFile]);
 
   const handleRename = useCallback((newName: string): boolean => {
@@ -163,12 +161,9 @@ export const useEditor = () => {
     if (!target) return false;
     const renamed = renameFileOnDisk(target.uri, newName);
     if (!renamed.success) return false;
-
     setFiles((prev) => {
       const updated = prev.map((f) =>
-        f.id === target.id
-          ? { ...f, name: renamed.name, uri: renamed.uri }
-          : f,
+        f.id === target.id ? { ...f, name: renamed.name, uri: renamed.uri } : f,
       );
       persistTabs(updated);
       return updated;
@@ -176,10 +171,18 @@ export const useEditor = () => {
     return true;
   }, []);
 
+  const handleReorderTabs = useCallback((fromIndex: number, toIndex: number) => {
+    if (fromIndex === toIndex) return;
+    setFiles((prev) => {
+      const updated = reorderFiles(prev, fromIndex, toIndex);
+      if (updated !== prev) persistTabs(updated);
+      return updated;
+    });
+  }, []);
+
   const handleSaveAs = useCallback(async (): Promise<SaveOutcome> => {
     const target = activeFileRef.current;
     if (!target) return "cancelled";
-
     const result = await saveFileAs(target.content, target.name);
     if (result.success && result.uri) {
       const newName = result.fileName ?? target.name;
@@ -201,7 +204,6 @@ export const useEditor = () => {
   const handleSave = useCallback(async (): Promise<SaveOutcome> => {
     const target = activeFileRef.current;
     if (!target) return "cancelled";
-
     if (target.uri) {
       const result = await saveFile(target.content, target.uri);
       if (result.success) {
@@ -216,7 +218,6 @@ export const useEditor = () => {
         return "saved";
       }
     }
-
     return await handleSaveAs();
   }, [handleSaveAs]);
 
@@ -234,6 +235,7 @@ export const useEditor = () => {
     handleNew,
     handleOpen,
     handleRename,
+    handleReorderTabs,
     handleSave,
     handleSaveAs,
     handleUndo,

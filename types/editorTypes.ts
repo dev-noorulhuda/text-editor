@@ -38,6 +38,7 @@ export interface TabsProps {
   onSelect: (id: string) => void;
   onClose: (id: string) => void;
   onNew: () => void;
+  onReorder?: (fromIndex: number, toIndex: number) => void;
 }
 
 export interface EditorProps {
