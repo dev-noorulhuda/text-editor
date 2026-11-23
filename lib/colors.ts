@@ -31,4 +31,9 @@ export const colors = {
     light: "rgba(37, 99, 235, 0.25)",
     dark: "rgba(96, 165, 250, 0.30)",
   },
+  // Non-zero alpha (alpha=5/255) avoids Android Fabric UndefinedColor (0) black fallback
+  invisibleText: {
+    light: "rgba(0, 0, 0, 0.02)",
+    dark: "rgba(255, 255, 255, 0.02)",
+  },
 } as const;

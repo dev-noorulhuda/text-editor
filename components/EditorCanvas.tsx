@@ -7,38 +7,15 @@ import {
   openUrlInBrowser,
   splitTextWithLinks,
 } from "@/lib/linkHelpers";
+import type { EditorCanvasProps } from "@/types/editorTypes";
 import { forwardRef, useCallback, useEffect, useMemo, useRef } from "react";
 import {
   Text,
   TextInput,
   View,
-  type DimensionValue,
   type TextInputInstance,
   type TextInputSelectionChangeEvent,
-  type TextLayoutEvent,
 } from "react-native";
-
-export interface EditorCanvasProps {
-  editable: boolean;
-  fontSize: number;
-  lineHeight: number;
-  resolvedFont: string;
-  isDark: boolean;
-  padLeft: number;
-  wordWrap: boolean;
-  canvasWidth: DimensionValue;
-  totalHeight?: number;
-  highlightLine: boolean;
-  highlightTop: number;
-  currentLineHeight: number;
-  normalizedContent: string;
-  handleTextLayout: (e: TextLayoutEvent) => void;
-  handleChangeText: (text: string) => void;
-  handleSelectionChange: (e: TextInputSelectionChangeEvent) => void;
-  onActiveLinkChange?: (url: string | null) => void;
-  onTapBlank: () => void;
-  onReadOnlyNotice?: () => void;
-}
 
 export const EditorCanvas = forwardRef<TextInputInstance, EditorCanvasProps>(
   (
@@ -111,20 +88,25 @@ export const EditorCanvas = forwardRef<TextInputInstance, EditorCanvasProps>(
     const selectionColor = isDark
       ? colors.selection.dark
       : colors.selection.light;
+    const invisibleInputColor = isDark
+      ? colors.invisibleText.dark
+      : colors.invisibleText.light;
     const lineHighlightBg = isDark
       ? "rgba(255,255,255,0.07)"
       : "rgba(0,0,0,0.04)";
 
-    const sharedTextStyle = {
+    const typographyStyle = {
       fontSize,
       lineHeight,
       fontFamily: resolvedFont,
       includeFontPadding: false,
-      paddingLeft: padLeft,
-      paddingRight: 6,
-      paddingTop: CONTENT_PADDING_TOP,
-      paddingBottom: 24,
     } as const;
+    const canvasPadding = {
+      left: padLeft,
+      right: 6,
+      top: CONTENT_PADDING_TOP,
+      bottom: 24,
+    };
 
     return (
       <View
@@ -188,7 +170,8 @@ export const EditorCanvas = forwardRef<TextInputInstance, EditorCanvasProps>(
             textColor={textColor}
             placeholderColor={placeholderColor}
             linkColor={linkColor}
-            baseStyle={sharedTextStyle}
+            baseStyle={typographyStyle}
+            padding={canvasPadding}
             totalHeight={totalHeight}
             onLinkPress={handleLinkPress}
           />
@@ -202,7 +185,8 @@ export const EditorCanvas = forwardRef<TextInputInstance, EditorCanvasProps>(
                 textColor={textColor}
                 placeholderColor={placeholderColor}
                 linkColor={linkColor}
-                baseStyle={sharedTextStyle}
+                baseStyle={typographyStyle}
+                padding={canvasPadding}
               />
             )}
 
@@ -211,9 +195,13 @@ export const EditorCanvas = forwardRef<TextInputInstance, EditorCanvasProps>(
               ref={ref}
               textBreakStrategy="simple"
               style={{
-                ...sharedTextStyle,
+                ...typographyStyle,
+                paddingLeft: canvasPadding.left,
+                paddingRight: canvasPadding.right,
+                paddingTop: canvasPadding.top,
+                paddingBottom: canvasPadding.bottom,
                 backgroundColor: "transparent",
-                color: hasLinks ? "transparent" : textColor,
+                color: hasLinks ? invisibleInputColor : textColor,
                 flex: 1,
                 minHeight: totalHeight,
                 width: "100%",

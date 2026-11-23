@@ -1,5 +1,12 @@
 import type { TextSegment } from "@/lib/linkHelpers";
-import { Text, type TextStyle } from "react-native";
+import { Text, View, type TextStyle } from "react-native";
+
+export interface CanvasPadding {
+  left: number;
+  right: number;
+  top: number;
+  bottom: number;
+}
 
 export interface LinkedTextLayerProps {
   mode: "readonly" | "backdrop";
@@ -9,6 +16,7 @@ export interface LinkedTextLayerProps {
   placeholderColor: string;
   linkColor: string;
   baseStyle: TextStyle;
+  padding: CanvasPadding;
   totalHeight?: number;
   onLinkPress?: (url: string) => void;
 }
@@ -21,9 +29,17 @@ export const LinkedTextLayer = ({
   placeholderColor,
   linkColor,
   baseStyle,
+  padding,
   totalHeight,
   onLinkPress,
 }: LinkedTextLayerProps) => {
+  const paddingStyle = {
+    paddingLeft: padding.left,
+    paddingRight: padding.right,
+    paddingTop: padding.top,
+    paddingBottom: padding.bottom,
+  };
+
   if (mode === "readonly") {
     return (
       <Text
@@ -31,6 +47,7 @@ export const LinkedTextLayer = ({
         textBreakStrategy="simple"
         style={{
           ...baseStyle,
+          ...paddingStyle,
           color: content ? textColor : placeholderColor,
           flex: 1,
           minHeight: totalHeight,
@@ -60,35 +77,42 @@ export const LinkedTextLayer = ({
   }
 
   return (
-    <Text
+    <View
       pointerEvents="none"
-      textBreakStrategy="simple"
       style={{
-        ...baseStyle,
         position: "absolute",
         top: 0,
         left: 0,
         right: 0,
-        color: textColor,
+        bottom: 0,
+        ...paddingStyle,
       }}
     >
-      {segments.map((seg, i) =>
-        seg.isLink ? (
-          <Text
-            key={i}
-            style={{
-              color: linkColor,
-              textDecorationLine: "underline",
-            }}
-          >
-            {seg.text}
-          </Text>
-        ) : (
-          seg.text
-        ),
-      )}
-      {content.endsWith("\n") ? " " : ""}
-    </Text>
+      <Text
+        textBreakStrategy="simple"
+        style={{
+          ...baseStyle,
+          color: textColor,
+        }}
+      >
+        {segments.map((seg, i) =>
+          seg.isLink ? (
+            <Text
+              key={i}
+              style={{
+                color: linkColor,
+                textDecorationLine: "underline",
+              }}
+            >
+              {seg.text}
+            </Text>
+          ) : (
+            seg.text
+          ),
+        )}
+        {content.endsWith("\n") ? " " : ""}
+      </Text>
+    </View>
   );
 };
 

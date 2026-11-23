@@ -1,3 +1,9 @@
+import type {
+  DimensionValue,
+  TextInputSelectionChangeEvent,
+  TextLayoutEvent,
+} from "react-native";
+
 export interface FileData {
   id: string;
   name: string;
@@ -57,4 +63,26 @@ export interface PromptConfig {
 
 export interface SupportPromptProps {
   isDark: boolean;
+}
+
+export interface EditorCanvasProps {
+  editable: boolean;
+  fontSize: number;
+  lineHeight: number;
+  resolvedFont: string;
+  isDark: boolean;
+  padLeft: number;
+  wordWrap: boolean;
+  canvasWidth: DimensionValue;
+  totalHeight?: number;
+  highlightLine: boolean;
+  highlightTop: number;
+  currentLineHeight: number;
+  normalizedContent: string;
+  handleTextLayout: (e: TextLayoutEvent) => void;
+  handleChangeText: (text: string) => void;
+  handleSelectionChange: (e: TextInputSelectionChangeEvent) => void;
+  onActiveLinkChange?: (url: string | null) => void;
+  onTapBlank: () => void;
+  onReadOnlyNotice?: () => void;
 }
